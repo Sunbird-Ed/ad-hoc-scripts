@@ -10,7 +10,7 @@ let questionNodeMap: QuestionMapping = {};
 let questionScoreMap: QuestionScoreMapping = {};
 
 async function saveQuestionMapping() {
-    const mappingPath = path.join(__dirname, '../data/question_mapping.json');
+    const mappingPath = path.join(__dirname, './../../data/question_mapping.json');
     await fs.promises.writeFile(
         mappingPath,
         JSON.stringify(questionNodeMap, null, 2),

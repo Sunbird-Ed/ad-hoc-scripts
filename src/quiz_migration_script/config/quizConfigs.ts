@@ -1,12 +1,14 @@
+import globalConfig from "../../globalConfigs";
+
 export const assessmentConfig = {
     csvPath: process.env.CSV_PATH || './data/assessment.csv',
     questionCsvPath: process.env.QUESTION_CSV_PATH || './data/questions.csv',
-    createdBy: process.env.CREATED_BY || '927c2094-987f-4e8f-8bd5-8bf93e3d2e8a',
-    organisation: process.env.ORGANISATION ? [process.env.ORGANISATION] : ['Fmps'],
-    framework: process.env.FRAMEWORK || 'FMPS',
     mimeType: process.env.MIME_TYPE || 'application/vnd.ekstep.ecml-archive',
-    creator: process.env.CREATOR || 'Content Creator FMPS',
-    channelId: process.env.CHANNEL_ID || '01429195271738982411'
+    createdBy: globalConfig.createdBy || '927c2094-987f-4e8f-8bd5-8bf93e3d2e8a',
+    organisation: globalConfig.organisation || ['FMPS Org'],
+    framework: globalConfig.framework || 'FMPS',
+    creator: globalConfig.creator || 'Content Creator FMPS',
+    channelId: globalConfig.channelId || '01429195271738982411'
 };
 
 export const assessmentDefaultValues = {
