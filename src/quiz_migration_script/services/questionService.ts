@@ -3,6 +3,7 @@ import { assessmentConfig } from '../config/assessmentConfig';
 import { questionConfig } from '../config/questionConfig';
 import { routes } from '../config/routes';
 import { QuestionResponse } from '../types';
+import { config } from '../config/config';
 
 interface Option {
     text: string;
@@ -154,11 +155,13 @@ export async function createQuestion(
 
     const headers = {
         'X-Channel-Id': assessmentConfig.channelId,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': config.apiAuthKey,
+        'x-authenticated-user-token': config.userToken
     };
 
     try {
-        const response = await axios.post<QuestionResponse>(`http://localhost:8080${routes.createQuestion}`, requestBody, { headers });
+        const response = await axios.post<QuestionResponse>(`${config.baseUrl}${routes.createQuestion}`, requestBody, { headers });
         console.log('Question Creation Response:', response.data);
         return response.data.result.node_id;
     } catch (error) {

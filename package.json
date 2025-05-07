@@ -2,11 +2,12 @@
   "name": "csv-api-processor",
   "version": "1.0.0",
   "description": "A Node.js script that processes a CSV file and makes API calls based on its content.",
-  "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node -r dotenv/config src/index.ts",
-    "build": "tsc",
-    "dev": "ts-node-dev --respawn -r dotenv/config src/index.ts"
+    "start:quiz": "ts-node -r dotenv/config src/quiz_migration_script/index.ts",
+    "start:course": "ts-node -r dotenv/config src/course_enrollment_script/index.ts",
+    "dev:quiz": "ts-node-dev --respawn -r dotenv/config src/quiz_migration_script/index.ts",
+    "dev:course": "ts-node-dev --respawn -r dotenv/config src/course_enrollment_script/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "axios": "^1.4.0",
