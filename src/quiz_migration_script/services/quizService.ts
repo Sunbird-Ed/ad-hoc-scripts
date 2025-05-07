@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { assessmentConfig } from '../config/assessmentConfig';
+import { assessmentConfig } from '../config/quizConfigs';
 import { routes } from '../config/routes';
-import { questionConfig } from '../config/questionConfig';
+import { questionConfig } from '../config/questionConfigs';
 import { config } from '../config/config';
 
 interface ContentRequestBody {

@@ -3,7 +3,7 @@ import path from 'path';
 import { parseCsv } from './utils/csv';
 import { createAssessment, updateContent, getAssessmentItem, reviewContent, publishContent, getAuthToken } from './services/quizService';
 import { createQuestion } from "./services/questionService";
-import { assessmentConfig, assessmentDefaultValues } from './config/assessmentConfig';
+import { assessmentConfig, assessmentDefaultValues } from './config/quizConfigs';
 import { QuestionMapping, QuestionScoreMapping } from './types';
 
 let questionNodeMap: QuestionMapping = {};

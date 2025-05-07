@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { assessmentConfig } from '../config/assessmentConfig';
-import { questionConfig } from '../config/questionConfig';
+import { assessmentConfig } from '../config/quizConfigs';
+import { questionConfig } from '../config/questionConfigs';
 import { routes } from '../config/routes';
 import { QuestionResponse } from '../types';
 import { config } from '../config/config';
