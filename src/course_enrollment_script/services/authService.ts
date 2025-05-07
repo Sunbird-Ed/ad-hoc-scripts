@@ -42,7 +42,7 @@ async function getEmailFromCsv(learnerCode: string): Promise<string | null> {
     }
 }
 
-export async function getAuthToken(learnerCode: string): Promise<{ accessToken: string, userId: string }> {
+export async function getUserId(learnerCode: string): Promise<{ accessToken: string, userId: string }> {
     const email = await getEmailFromCsv(learnerCode);
     if (!email) {
         throw new Error(`No email found for learner code: ${learnerCode}`);

@@ -1,10 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { parseCsv } from './utils/csv';
-import { createAssessment, updateContent, getAssessmentItem, reviewContent, publishContent, getAuthToken } from './services/quizService';
+import { createAssessment, updateContent, getAssessmentItem, reviewContent, publishContent } from './services/quizService';
 import { createQuestion } from "./services/questionService";
 import { assessmentConfig, assessmentDefaultValues } from './config/quizConfigs';
 import { QuestionMapping, QuestionScoreMapping } from './types';
+import { getAuthToken } from '../services/authService';
 
 let questionNodeMap: QuestionMapping = {};
 let questionScoreMap: QuestionScoreMapping = {};

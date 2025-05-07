@@ -1,10 +1,10 @@
 import fs from 'fs';
-import axios from 'axios';
-import { getAuthToken } from './services/authService';
+import { getUserId } from './services/authService';
 import { parseCsv } from './utils/csv';
 import { createLearnerProfile, enrollInCourse, getBatchList, searchCourse } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
+import { getAuthToken } from '../services/authService';
 
 interface CourseMapping {
     [key: string]: string[];
@@ -21,6 +21,7 @@ interface ProcessingResult {
 }
 
 async function processCourseEnrollments() {
+    await getAuthToken()
     const rows = await parseCsv(courseConfig.learnerCoursePath);
     const dataRows = rows.slice(1);
     const headerRow = [...rows[0], 'status', 'errorMessage'];
@@ -38,7 +39,7 @@ async function processCourseEnrollments() {
             batchMapping[learnerProfileCode] = {};
 
             // Get auth token
-            const { userId } = await getAuthToken(learnerProfileCode);
+            const { userId } = await getUserId(learnerProfileCode);
             const courseCodes = record[2].split(',').map((code: string) => code.trim());
 
             // Process each course code
