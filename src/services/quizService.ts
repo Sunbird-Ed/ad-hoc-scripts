@@ -45,7 +45,7 @@ interface ContentUpdateRequestBody {
     }
 }
 
-export async function makeApiCall(
+export async function createAssessment(
     code: string,
     name: string,
     maxAttempts: number,
