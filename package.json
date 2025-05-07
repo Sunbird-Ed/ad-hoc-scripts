@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A Node.js script that processes a CSV file and makes API calls based on its content.",
   "scripts": {
-    "start:quiz": "ts-node -r dotenv/config src/quiz_migration_script/index.ts",
+    "start:quiz": "ts-node -r dotenv/config src/quiz_creation_script/index.ts",
     "start:course": "ts-node -r dotenv/config src/course_enrollment_script/index.ts",
-    "dev:quiz": "ts-node-dev --respawn -r dotenv/config src/quiz_migration_script/index.ts",
+    "dev:quiz": "ts-node-dev --respawn -r dotenv/config src/quiz_creation_script/index.ts",
     "dev:course": "ts-node-dev --respawn -r dotenv/config src/course_enrollment_script/index.ts",
     "build": "tsc"
   },
