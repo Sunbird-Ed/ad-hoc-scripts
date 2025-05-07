@@ -1,10 +1,8 @@
 import axios from 'axios';
-import clipboardy from 'clipboardy';
 import { assessmentConfig } from '../config/assessmentConfig';
 import { questionConfig } from '../config/questionConfig';
 import { routes } from '../config/routes';
 import { QuestionResponse } from '../types';
-import { config } from '../config/config';
 
 interface Option {
     text: string;
