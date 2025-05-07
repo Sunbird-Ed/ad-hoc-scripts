@@ -73,14 +73,14 @@ export async function makeApiCall(
         'X-Channel-Id': assessmentConfig.channelId,
         'Content-Type': 'application/json',
         'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': assessmentConfig.channelId,
+        'x-authenticated-user-token': config.userToken
     };
 
     try {
         const response = await axios.post(`${config.baseUrl}${routes.createContent}`, body, { headers });
         console.log('API Response:', response.data);
         return {
-            identifier: response.data.result.node_id,
+            identifier: response.data.result.content_id,
             versionKey: response.data.result.versionKey
         };
     } catch (error) {
@@ -117,7 +117,9 @@ export async function updateContent(
 
     const headers = {
         'X-Channel-Id': assessmentConfig.channelId,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': config.apiAuthKey,
+        'x-authenticated-user-token': config.userToken
     };
 
     try {
@@ -147,7 +149,9 @@ export async function getAssessmentItem(identifier: string): Promise<any> {
 export async function reviewContent(identifier: string): Promise<void> {
     const headers = {
         'X-Channel-Id': assessmentConfig.channelId,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': config.apiAuthKey,
+        'x-authenticated-user-token': config.userToken
     };
 
     const body = {
@@ -168,7 +172,9 @@ export async function reviewContent(identifier: string): Promise<void> {
 export async function publishContent(identifier: string): Promise<void> {
     const headers = {
         'X-Channel-Id': assessmentConfig.channelId,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': config.apiAuthKey,
+        'x-authenticated-user-token': config.userToken
     };
 
     const body = {

@@ -72,7 +72,7 @@ async function processQuestionCsv() {
         const csvString = statusReport.map(row => row.join(',')).join('\n');
         const outputPath = path.join(resultsDir, 'questions_status.csv');
         fs.writeFileSync(outputPath, csvString);
-        console.log(`Status report saved to ${outputPath}`);
+        console.log(`Question status report saved to ${outputPath}`);
     } catch (error) {
         console.error('Error processing question CSV:', error);
         process.exit(1);
@@ -101,7 +101,12 @@ async function processContentCsv() {
                 const missingQuestions = questionCodes.filter(qCode => !questionNodeMap[qCode]);
                 if (missingQuestions.length > 0) {
                     statusReport.push([
-                        ...row,
+                        code,
+                        name,
+                        maxAttempts.toString(),
+                        row[3],
+                        contentType,
+                        row[5],
                         'Failed',
                         `${missingQuestions.join(', ')} does not exist.`
                     ]);
@@ -112,7 +117,12 @@ async function processContentCsv() {
                     const { identifier, versionKey } = await makeApiCall(code, name, maxAttempts, contentType);
 
                     statusReport.push([
-                        ...row,
+                        code,
+                        name,
+                        maxAttempts.toString(),
+                        row[3],
+                        contentType,
+                        row[5],
                         'Draft',
                         ''
                     ]);
@@ -618,6 +628,10 @@ async function processContentCsv() {
                 }
             }
         }
+        const csvString = statusReport.map(row => row.join(',')).join('\n');
+        const quizReportPath = path.join(resultsDir, 'quiz_report.csv');
+        fs.writeFileSync(quizReportPath, csvString);
+        console.log(`Quiz status report saved to ${quizReportPath}`);
         console.log('Content processing completed');
     } catch (error) {
         console.error('Error processing content CSV:', error);
@@ -634,13 +648,13 @@ async function generateQuizQuestionStatus() {
         }
 
         // Get all content data
-        const contentRows = await parseCsv(assessmentConfig.contentCsvPath);
+        const contentRows = await parseCsv(assessmentConfig.csvPath);
         const quizQuestionStatus = [['quiz_code', 'question_code', 'question_creation_status', 'question_attachment_status', 'error_message']];
 
         for (const row of contentRows.slice(1)) { // Skip header
-            if (row.length >= 3) {
+            if (row.length >= 6) {
                 const code = row[0];
-                const questionCodes = row[2].split(',');
+                const questionCodes = row[5].split(',').map(code => code.trim());
 
                 for (const qCode of questionCodes) {
                     const questionExists = questionNodeMap[qCode] !== undefined;
@@ -672,15 +686,17 @@ async function generateQuizQuestionStatus() {
 
 async function main() {
     try {
-        // First process questions and build the mapping
+        // Get the user Token
         await getAuthToken()
-        
+
+        //Process questions and build the mapping
         console.log('Starting question processing...');
         await processQuestionCsv();
 
+        // Generate quiz-question status report
         await generateQuizQuestionStatus();
 
-        // Then process content
+        // Then process assessment
         console.log('Starting content processing...');
         await processContentCsv();
     } catch (error) {

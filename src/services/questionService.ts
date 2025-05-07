@@ -160,7 +160,7 @@ export async function createQuestion(
     };
 
     try {
-        const response = await axios.post<QuestionResponse>(`${config.baseUrl}${routes.createQuestion}`, requestBody, { headers });
+        const response = await axios.post<QuestionResponse>(`http://localhost:8080${routes.createQuestion}`, requestBody, { headers });
         console.log('Question Creation Response:', response.data);
         return response.data.result.node_id;
     } catch (error) {

@@ -6,6 +6,5 @@ export const assessmentConfig = {
     framework: process.env.FRAMEWORK || 'FMPS',
     mimeType: process.env.MIME_TYPE || 'application/vnd.ekstep.ecml-archive',
     creator: process.env.CREATOR || 'Content Creator FMPS',
-    channelId: process.env.CHANNEL_ID || '01429195271738982411',
-    contentCsvPath: process.env.CONTENT_CSV_PATH || './data/assessment_create.csv'
+    channelId: process.env.CHANNEL_ID || '01429195271738982411'
 };
