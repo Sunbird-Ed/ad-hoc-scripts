@@ -16,7 +16,7 @@ function extractUserIdFromToken(token: string): string {
         const userId = tokenData.sub.split(':').pop();
         return userId;
     } catch (error) {
-        console.error('Error extracting user ID from token:', error);
+        console.error('Error extracting user ID from token:');
         throw error;
     }
 }
@@ -35,7 +35,7 @@ async function getEmailFromCsv(learnerCode: string): Promise<string | null> {
         }
         return null;
     } catch (error) {
-        console.error('Error reading CSV:', error);
+        console.error('Error reading CSV:');
         throw error;
     }
 }
@@ -84,7 +84,7 @@ export async function getUserId(learnerCode: string): Promise<{ accessToken: str
 
         return { accessToken, userId };
     } catch (error) {
-        console.error('Authentication Error:', error);
+        console.error('Invalid user credentials for course enrollment');
         throw error;
     }
 }

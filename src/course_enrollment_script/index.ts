@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { getUserId } from './services/authService';
 import parseCsv from "../services/csv";
-import { createLearnerProfile, enrollInCourse, getBatchList, searchCourse, updateLearnerProfile } from './services/courseService';
+import { createLearnerProfile, enrollInCourse, getBatchList, publishContent, searchCourse, updateLearnerProfile } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
@@ -64,12 +64,13 @@ async function processCourseEnrollments() {
             }
 
             const nodeIdsStringArray = Array.from(currentMapping[learnerProfileCode].keys()).map(String);
-            
+
             // Create and update learner profile
             const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, record);
             await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], record);
-            
-            console.log(`Successfully created and updated learner profile for ${learnerProfileCode}`);
+            await publishContent(learnerProfileIdentifier);
+
+            console.log(`Successfully published learner profile for ${learnerProfileCode}`);
 
             // Perform enrollments
             for (const [nodeId, _] of currentMapping[learnerProfileCode]) {
@@ -88,13 +89,19 @@ async function processCourseEnrollments() {
             });
 
         } catch (error: any) {
+            let errorMessage;
+            if (error?.response?.data?.params?.errmsg) {
+                errorMessage = error.response.data.params.errmsg;
+            } else {
+                errorMessage = error?.message || 'Unknown error occurred';
+            }
             // Record failed processing with error message
             results.push({
                 originalRow: record,
                 status: 'Failure',
-                errorMessage: error.message || 'Unknown error occurred'
+                errorMessage: errorMessage
             });
-            console.error(`Error processing learner profile ${learnerProfileCode}:`, error.message);
+            console.error(`Error processing learner profile ${learnerProfileCode}:`, errorMessage);
 
             // Write intermediate results to CSV after each failure
             writeResultsToCSV(headerRow, results);

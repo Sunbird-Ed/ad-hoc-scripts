@@ -52,7 +52,7 @@ export async function searchCourse(courseCode: string): Promise<{ identifier: st
         }
         return { identifier: "", name: "" };
     } catch (error) {
-        console.error(`Error searching for course ${courseCode}:`, error);
+        console.error(`Error searching for course ${courseCode}:`);
         throw error;
     }
 }
@@ -96,7 +96,7 @@ export async function createLearnerProfile(learnerCode: string, nodeIds: string[
         console.log(`Created learner profile for ${learnerCode}:`, JSON.stringify(response.data));
         return response.data.result.identifier;
     } catch (error) {
-        console.error(`Error creating learner profile for ${learnerCode}:`, error);
+        console.error(`Error creating learner profile for ${learnerCode}:`);
         throw error;
     }
 }
@@ -216,7 +216,7 @@ export async function getBatchList(courseId: string): Promise<string | null> {
         }
         return null;
     } catch (error) {
-        console.error(`Error fetching batch list for ${courseId}:`, error);
+        console.error(`Error fetching batch list for ${courseId}:`);
         return null;
     }
 }
@@ -243,7 +243,32 @@ export async function enrollInCourse(courseId: string, batchId: string, userId: 
         console.log(`Successfully enrolled in course ${courseId}, batch ${batchId}`);
         return response.data;
     } catch (error) {
-        console.error(`Error enrolling in course ${courseId}, batch ${batchId}:`, error);
+        console.error(`Error enrolling in course ${courseId}, batch ${batchId}:`);
+        throw error;
+    }
+}
+
+export async function publishContent(identifier: string): Promise<void> {
+    const headers = {
+        'X-Channel-Id': courseConfig.channelId,
+        'Content-Type': 'application/json',
+        'Authorization': config.apiAuthKey,
+        'x-authenticated-user-token': globalConfig.userToken
+    };
+
+    const body = {
+        request: {
+            content: {
+                lastPublishedBy: courseConfig.createdBy
+            }
+        }
+    };
+
+    try {
+        const response = await axios.post(`${config.baseUrl}${routes.publishContent}/${identifier}`, body, { headers });
+        console.log('Publish API Response:', response.data);
+    } catch (error) {
+        console.error('Publish API Error:');
         throw error;
     }
 }

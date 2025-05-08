@@ -166,7 +166,6 @@ export async function createQuestion(
         console.log('Question Creation Response:', response.data);
         return response.data.result.node_id;
     } catch (error) {
-        console.error('Question Creation Error:', error);
         throw error;
     }
 }

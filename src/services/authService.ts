@@ -44,7 +44,6 @@ export async function getAuthToken(): Promise<string> {
 
         return accessToken;
     } catch (error) {
-        console.error('Authentication Error:', error);
         throw error;
     }
 }

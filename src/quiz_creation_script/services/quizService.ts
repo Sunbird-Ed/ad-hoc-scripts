@@ -85,7 +85,7 @@ export async function createAssessment(
             versionKey: response.data.result.versionKey
         };
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('API Error:');
         throw error;
     }
 }
@@ -127,7 +127,7 @@ export async function updateContent(
         const response = await axios.patch(`${config.baseUrl}${routes.updateContent}/${nodeId}`, body, { headers });
         console.log('Update API Response:', response.data);
     } catch (error) {
-        console.error('Update API Error:', error);
+        console.error('Update API Error:');
         throw error;
     }
 }
@@ -142,7 +142,7 @@ export async function getAssessmentItem(identifier: string): Promise<any> {
         console.log(`Fetched assessment item ${identifier}`);
         return response.data;
     } catch (error) {
-        console.error(`Error fetching assessment item ${identifier}:`, error);
+        console.error(`Error fetching assessment item ${identifier}:`);
         throw error;
     }
 }
@@ -165,7 +165,7 @@ export async function reviewContent(identifier: string): Promise<void> {
         const response = await axios.post(`${config.baseUrl}${routes.reviewContent}/${identifier}`, body, { headers });
         console.log('Review API Response:', response.data);
     } catch (error) {
-        console.error('Review API Error:', error);
+        console.error('Review API Error:');
         throw error;
     }
 }
@@ -190,7 +190,7 @@ export async function publishContent(identifier: string): Promise<void> {
         const response = await axios.post(`${config.baseUrl}${routes.publishContent}/${identifier}`, body, { headers });
         console.log('Publish API Response:', response.data);
     } catch (error) {
-        console.error('Publish API Error:', error);
+        console.error('Publish API Error:' );
         throw error;
     }
 }

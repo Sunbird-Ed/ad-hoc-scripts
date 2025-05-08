@@ -70,15 +70,15 @@ async function processQuestionCsv() {
 
         // Write the status report to CSV with proper quoting for fields containing commas
         const csvString = statusReport
-            .map(row => row.map(cell => 
+            .map(row => row.map(cell =>
                 cell.includes(',') ? `"${cell}"` : cell
             ).join(','))
             .join('\n');
         const outputPath = path.join(resultsDir, 'questions_status.csv');
         fs.writeFileSync(outputPath, csvString);
         console.log(`Question status report saved to ${outputPath}`);
-    } catch (error) {
-        console.error('Error processing question CSV:', error);
+    } catch (error: any) {
+        console.error('Error processing question CSV:', error?.response);
         process.exit(1);
     }
 }
@@ -233,7 +233,7 @@ async function processContentCsv() {
                                                 "org.ekstep.question": formattedAssessmentItems
                                             }]
                                     },
-                                    {"x":0,"y":0,"w":100,"h":100,"rotate":null,"config":{"__cdata":"{\"opacity\":100,\"strokeWidth\":1,\"stroke\":\"rgba(255, 255, 255, 0)\",\"autoplay\":false,\"visible\":true,\"color\":\"#FFFFFF\",\"genieControls\":false,\"instructions\":\"\"}"},"id":"summary_stage_id","manifest":{"media":[{"assetId":"summaryImage"}]},"org.ekstep.summary":[{"config":{"__cdata":"{\"opacity\":100,\"strokeWidth\":1,\"stroke\":\"rgba(255, 255, 255, 0)\",\"autoplay\":false,\"visible\":true}"},"id":"summary_plugin_id","rotate":0,"x":6.69,"y":-27.9,"w":77.45,"h":125.53,"z-index":0}]}
+                                    { "x": 0, "y": 0, "w": 100, "h": 100, "rotate": null, "config": { "__cdata": "{\"opacity\":100,\"strokeWidth\":1,\"stroke\":\"rgba(255, 255, 255, 0)\",\"autoplay\":false,\"visible\":true,\"color\":\"#FFFFFF\",\"genieControls\":false,\"instructions\":\"\"}" }, "id": "summary_stage_id", "manifest": { "media": [{ "assetId": "summaryImage" }] }, "org.ekstep.summary": [{ "config": { "__cdata": "{\"opacity\":100,\"strokeWidth\":1,\"stroke\":\"rgba(255, 255, 255, 0)\",\"autoplay\":false,\"visible\":true}" }, "id": "summary_plugin_id", "rotate": 0, "x": 6.69, "y": -27.9, "w": 77.45, "h": 125.53, "z-index": 0 }] }
                                 ],
                                 "manifest": assessmentDefaultValues.manifest,
                                 "plugin-manifest": assessmentDefaultValues.pluginManifest,
@@ -270,8 +270,8 @@ async function processContentCsv() {
         fs.writeFileSync(quizReportPath, csvString);
         console.log(`Quiz status report saved to ${quizReportPath}`);
         console.log('Content processing completed');
-    } catch (error) {
-        console.error('Error processing content CSV:', error);
+    } catch (error: any) {
+        console.error('Error processing content CSV:', error?.response);
         process.exit(1);
     }
 }
@@ -314,8 +314,8 @@ async function generateQuizQuestionStatus() {
         const outputPath = path.join(resultsDir, 'quiz_question_status.csv');
         fs.writeFileSync(outputPath, csvString);
         console.log(`Quiz-question status report saved to ${outputPath}`);
-    } catch (error) {
-        console.error('Error generating quiz-question status:', error);
+    } catch (error: any) {
+        console.error('Error generating quiz-question status:', error?.response);
         process.exit(1);
     }
 }
