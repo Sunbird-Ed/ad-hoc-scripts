@@ -1,6 +1,6 @@
 const globalConfig = {
     baseUrl: process.env.BASE_URL || 'https://dev-fmps.sunbirded.org',
-    apiAuthKey: process.env.API_KEY || 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcGlfYWRtaW4ifQ.-qfZEwBAoHFhxNqhGq7Vy_SNVcwB1AtMX8xbiVHF5FQ',
+    apiAuthKey: process.env.AUTH_KEY || '',
     username: process.env.USERNAME || 'contentcreator-fmps@yopmail.com',
     password: process.env.PASSWORD || 'CreatorFmps@123',
     userToken: process.env.TOKEN || '',
