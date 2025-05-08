@@ -6,8 +6,8 @@ export const config = {
     username: globalConfig.username || 'contentcreator-fmps@yopmail.com',
     password: globalConfig.password || 'CreatorFmps@123',
     userToken: globalConfig.userToken || '',
-    clientId: globalConfig.clientId || 'direct-grant',
-    clientSecret: globalConfig.clientSecret || 'direct-grantfmps12345678',
+    clientId: globalConfig.clientId || '',
+    clientSecret: globalConfig.clientSecret || '',
     grant_type: globalConfig.grant_type || 'password',
     channelId: globalConfig.channelId || '01429195271738982411'
 }
