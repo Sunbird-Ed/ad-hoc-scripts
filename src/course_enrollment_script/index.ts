@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { getUserId } from './services/authService';
 import parseCsv from "../services/csv";
-import { createLearnerProfile, enrollInCourse, getBatchList, searchCourse } from './services/courseService';
+import { createLearnerProfile, enrollInCourse, getBatchList, searchCourse, updateLearnerProfile } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
@@ -63,9 +63,13 @@ async function processCourseEnrollments() {
                 }
             }
 
-            // Create learner profile
-            await createLearnerProfile(learnerProfileCode, currentMapping[learnerProfileCode], record);
-            console.log(`Successfully created learner profile for ${learnerProfileCode}`);
+            const nodeIdsStringArray = Array.from(currentMapping[learnerProfileCode].keys()).map(String);
+            
+            // Create and update learner profile
+            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, record);
+            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], record);
+            
+            console.log(`Successfully created and updated learner profile for ${learnerProfileCode}`);
 
             // Perform enrollments
             for (const [nodeId, _] of currentMapping[learnerProfileCode]) {

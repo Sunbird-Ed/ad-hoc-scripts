@@ -3,6 +3,7 @@ export const routes = {
     createLearnerProfile: '/api/collection/v1/create',
     searchCourse: '/api/composite/v1/search',
     enrollUser: '/api/course/v1/enrol',
+    updateLearnerProfile: '/api/collection/v1/hierarchy/update',
     getToken: '/auth/v1/refresh/token',
     getRefeshToken: '/auth/realms/sunbird/protocol/openid-connect/token',
 };

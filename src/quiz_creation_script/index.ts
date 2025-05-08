@@ -56,7 +56,7 @@ async function processQuestionCsv() {
                     const nodeId = await createQuestion(code, title, optionPairs, maxScore);
                     questionNodeMap[code] = nodeId;
                     console.log(`Mapped question code ${code} to node_id ${nodeId} with score ${maxScore}`);
-                    statusReport.push(row.concat(['Success', '']));
+                    statusReport.push(row.concat(['Success', 'none']));
                 }
             } catch (error: any) {
                 console.error(`Error processing question ${row[0]}:`, error);
@@ -68,8 +68,12 @@ async function processQuestionCsv() {
         // Save the question mapping to a JSON file
         await saveQuestionMapping();
 
-        // Write the status report to CSV
-        const csvString = statusReport.map(row => row.join(',')).join('\n');
+        // Write the status report to CSV with proper quoting for fields containing commas
+        const csvString = statusReport
+            .map(row => row.map(cell => 
+                cell.includes(',') ? `"${cell}"` : cell
+            ).join(','))
+            .join('\n');
         const outputPath = path.join(resultsDir, 'questions_status.csv');
         fs.writeFileSync(outputPath, csvString);
         console.log(`Question status report saved to ${outputPath}`);
@@ -99,13 +103,15 @@ async function processContentCsv() {
 
                 const missingQuestions = questionCodes.filter(qCode => !questionNodeMap[qCode]);
                 if (missingQuestions.length > 0) {
+                    // Ensure questions field is properly quoted if it contains commas
+                    const questionsField = row[5].includes(',') ? `"${row[5]}"` : row[5];
                     statusReport.push([
                         code,
                         name,
                         maxAttempts.toString(),
                         row[3],
                         contentType,
-                        row[5],
+                        questionsField,
                         'Failed',
                         `${missingQuestions.join(', ')} does not exist.`
                     ]);
@@ -115,15 +121,17 @@ async function processContentCsv() {
                     // Create content and get identifier and versionKey
                     const { identifier, versionKey } = await createAssessment(code, name, maxAttempts, contentType);
 
+                    // Ensure questions field is properly quoted if it contains commas
+                    const questionsField = row[5].includes(',') ? `"${row[5]}"` : row[5];
                     statusReport.push([
                         code,
                         name,
                         maxAttempts.toString(),
                         row[3],
                         contentType,
-                        row[5],
+                        questionsField,
                         'Draft',
-                        ''
+                        'none'
                     ]);
 
                     // Map question codes to their node IDs and calculate total score

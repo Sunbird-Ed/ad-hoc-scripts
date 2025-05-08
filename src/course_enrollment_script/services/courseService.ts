@@ -3,8 +3,9 @@ import { config } from "../config/config";
 import { routes } from "../config/routes";
 import { courseConfig } from "../config/courseConfig";
 import globalConfig from "../../globalConfigs";
+import _ from "lodash";
 
-export async function searchCourse(courseCode: string): Promise<string> {
+export async function searchCourse(courseCode: string): Promise<{ identifier: string, name: string }> {
     try {
         const response = await axios({
             method: 'post',
@@ -44,12 +45,15 @@ export async function searchCourse(courseCode: string): Promise<string> {
         });
 
         if (response.data.responseCode === 'OK' && response.data.result.content) {
-            return response.data.result.content[0].identifier;
+            if (_.isArray(response.data.result.content)) {
+                return { identifier: response.data.result.content[0].identifier, name: response.data.result.content[0].name };
+            }
+            return { identifier: response.data.result.content.identifier, name: response.data.result.content.name };
         }
-        return "";
+        return { identifier: "", name: "" };
     } catch (error) {
         console.error(`Error searching for course ${courseCode}:`, error);
-        return "";
+        throw error;
     }
 }
 
@@ -90,13 +94,93 @@ export async function createLearnerProfile(learnerCode: string, nodeIds: string[
         });
 
         console.log(`Created learner profile for ${learnerCode}:`, JSON.stringify(response.data));
-        return response.data;
+        return response.data.result.identifier;
     } catch (error) {
         console.error(`Error creating learner profile for ${learnerCode}:`, error);
         throw error;
     }
 }
 
+export async function updateLearnerProfile(
+    learnerCode: string,
+    learnerId: string,
+    courseMapping: Map<any, string>,
+    record: string[]
+  ) {
+    try {
+      const children: string[] = [];
+      const hierarchyNodes: Record<string, any> = {};
+  
+      // Build the child nodes from the courseMapping
+      for (const [nodeId, name] of courseMapping.entries()) {
+        const stringNodeId = String(nodeId); // convert all keys to string
+        children.push(stringNodeId);
+  
+        hierarchyNodes[stringNodeId] = {
+          name,
+          children: [],
+          root: false
+        };
+      }
+  
+      // Create the PATCH payload structure
+      const payload = {
+        request: {
+          data: {
+            nodesModified: {
+              [learnerId]: {
+                root: true,
+                objectType: "Content",
+                metadata: {
+                  name: record[1],
+                  code: learnerCode,
+                  description: "Learner Profile for course enrollment",
+                  createdBy: courseConfig.createdBy,
+                  organisation: courseConfig.organisation,
+                  createdFor: [config.channelId],
+                  framework: courseConfig.framework,
+                  mimeType: "application/vnd.ekstep.content-collection",
+                  creator: courseConfig.creator,
+                  expiry_date: record[3],
+                  primaryCategory: "Learner Profile"
+                },
+                isNew: false
+              }
+            },
+            hierarchy: {
+              [learnerId]: {
+                name: record[1],
+                children,
+                root: true
+              },
+              ...hierarchyNodes
+            },
+            lastUpdatedBy: courseConfig.createdBy
+          }
+        }
+      };
+  
+      // Send PATCH request
+      const response = await axios({
+        method: 'patch',
+        url: `${config.baseUrl}${routes.updateLearnerProfile}`, // should be /api/collection/v1/hierarchy/update
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Channel-Id': config.channelId,
+          'Authorization': config.apiAuthKey,
+          'x-authenticated-user-token': globalConfig.userToken
+        },
+        data: payload
+      });
+  
+      console.log(`Updated learner profile for ${learnerCode}:`, JSON.stringify(response.data));
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating learner profile for ${learnerCode}:`, error);
+      throw error;
+    }
+  }
+  
 
 export async function getBatchList(courseId: string): Promise<string | null> {
     try {
