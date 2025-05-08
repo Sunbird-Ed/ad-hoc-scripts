@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { parse } from 'csv-parse';
 
-export function parseCsv(filePath: string): Promise<string[][]> {
+function parseCsv(filePath: string): Promise<string[][]> {
     return new Promise((resolve, reject) => {
         const rows: string[][] = [];
         fs.createReadStream(filePath)
@@ -17,3 +17,5 @@ export function parseCsv(filePath: string): Promise<string[][]> {
             });
     });
 }
+
+export default parseCsv;

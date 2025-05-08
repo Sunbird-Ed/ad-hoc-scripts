@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { parseCsv } from './utils/csv';
+import parseCsv from "../services/csv";
 import { createAssessment, updateContent, getAssessmentItem, reviewContent, publishContent } from './services/quizService';
 import { createQuestion } from "./services/questionService";
 import { assessmentConfig, assessmentDefaultValues } from './config/quizConfigs';

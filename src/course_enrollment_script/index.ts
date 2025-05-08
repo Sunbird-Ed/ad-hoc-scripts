@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { getUserId } from './services/authService';
-import { parseCsv } from './utils/csv';
+import parseCsv from "../services/csv";
 import { createLearnerProfile, enrollInCourse, getBatchList, searchCourse } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
