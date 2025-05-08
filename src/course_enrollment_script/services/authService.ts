@@ -1,9 +1,7 @@
 import axios from "axios";
-import fs from 'fs';
-import csv from 'csv-parse';
 import { config } from "../config/config";
 import { routes } from "../config/routes";
-import { parseCsv } from "../utils/csv";
+import parseCsv from "../../services/csv";
 import { courseConfig } from "../config/courseConfig";
 
 function extractUserIdFromToken(token: string): string {
