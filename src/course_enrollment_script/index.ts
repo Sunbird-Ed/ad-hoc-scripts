@@ -93,7 +93,7 @@ async function processCourseEnrollments() {
             if (error?.response?.data?.params?.errmsg) {
                 errorMessage = error.response.data.params.errmsg;
             } else {
-                errorMessage = error?.message || 'Unknown error occurred';
+                errorMessage = error?.message || 'Failed to enrol to the course';
             }
             // Record failed processing with error message
             results.push({
