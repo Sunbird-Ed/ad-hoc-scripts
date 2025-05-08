@@ -26,7 +26,7 @@ async function processQuestionCsv() {
         const dataRows = rows.slice(1);
 
         // Create results directory if it doesn't exist
-        const resultsDir = path.join(__dirname, '..', 'results');
+        const resultsDir = path.join(__dirname, '..', 'reports');
         if (!fs.existsSync(resultsDir)) {
             fs.mkdirSync(resultsDir);
         }
@@ -81,7 +81,7 @@ async function processQuestionCsv() {
 
 async function processContentCsv() {
     try {
-        const resultsDir = path.join(__dirname, '..', 'results');
+        const resultsDir = path.join(__dirname, '..', 'reports');
         if (!fs.existsSync(resultsDir)) {
             fs.mkdirSync(resultsDir);
         }
@@ -271,7 +271,7 @@ async function processContentCsv() {
 async function generateQuizQuestionStatus() {
     try {
         // Create results directory if it doesn't exist
-        const resultsDir = path.join(__dirname, '..', 'results');
+        const resultsDir = path.join(__dirname, '..', 'reports');
         if (!fs.existsSync(resultsDir)) {
             fs.mkdirSync(resultsDir);
         }

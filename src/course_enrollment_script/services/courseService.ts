@@ -2,6 +2,7 @@ import axios from "axios";
 import { config } from "../config/config";
 import { routes } from "../config/routes";
 import { courseConfig } from "../config/courseConfig";
+import globalConfig from "../../globalConfigs";
 
 export async function searchCourse(courseCode: string): Promise<string> {
     try {
@@ -12,7 +13,7 @@ export async function searchCourse(courseCode: string): Promise<string> {
                 'Content-Type': 'application/json',
                 'X-Channel-Id': config.channelId,
                 'Authorization': config.apiAuthKey,
-                'x-authenticated-user-token': config.userToken
+                'x-authenticated-user-token': globalConfig.userToken
             },
             data: {
                 request: {
@@ -66,7 +67,7 @@ export async function createLearnerProfile(learnerCode: string, nodeIds: string[
                 'Content-Type': 'application/json',
                 'X-Channel-Id': config.channelId,
                 'Authorization': config.apiAuthKey,
-                'x-authenticated-user-token': config.userToken
+                'x-authenticated-user-token': globalConfig.userToken
             },
             data: {
                 request: {
@@ -106,7 +107,7 @@ export async function getBatchList(courseId: string): Promise<string | null> {
                 'Content-Type': 'application/json',
                 'X-Channel-Id': config.channelId,
                 'Authorization': config.apiAuthKey,
-                'x-authenticated-user-token': config.userToken
+                'x-authenticated-user-token': globalConfig.userToken
             },
             data: {
                 request: {
@@ -136,7 +137,7 @@ export async function getBatchList(courseId: string): Promise<string | null> {
     }
 }
 
-export async function enrollInCourse(courseId: string, batchId: string, userId: string) {
+export async function enrollInCourse(courseId: string, batchId: string, userId: string, userToken: string) {
     try {
         const response = await axios({
             method: 'post',
@@ -145,7 +146,7 @@ export async function enrollInCourse(courseId: string, batchId: string, userId: 
                 'Content-Type': 'application/json',
                 'X-Channel-Id': config.channelId,
                 'Authorization': config.apiAuthKey,
-                'x-authenticated-user-token': config.userToken
+                'x-authenticated-user-token': userToken
             },
             data: {
                 request: {

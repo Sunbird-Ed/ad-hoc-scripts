@@ -3,6 +3,7 @@ import { assessmentConfig } from '../config/quizConfigs';
 import { routes } from '../config/routes';
 import { questionConfig } from '../config/questionConfigs';
 import { config } from '../config/config';
+import globalConfig from '../../globalConfigs';
 
 interface ContentRequestBody {
     request: {
@@ -73,7 +74,7 @@ export async function createAssessment(
         'X-Channel-Id': assessmentConfig.channelId,
         'Content-Type': 'application/json',
         'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': config.userToken
+        'x-authenticated-user-token': globalConfig.userToken
     };
 
     try {
@@ -119,7 +120,7 @@ export async function updateContent(
         'X-Channel-Id': assessmentConfig.channelId,
         'Content-Type': 'application/json',
         'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': config.userToken
+        'x-authenticated-user-token': globalConfig.userToken
     };
 
     try {
@@ -151,7 +152,7 @@ export async function reviewContent(identifier: string): Promise<void> {
         'X-Channel-Id': assessmentConfig.channelId,
         'Content-Type': 'application/json',
         'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': config.userToken
+        'x-authenticated-user-token': globalConfig.userToken
     };
 
     const body = {
@@ -174,7 +175,7 @@ export async function publishContent(identifier: string): Promise<void> {
         'X-Channel-Id': assessmentConfig.channelId,
         'Content-Type': 'application/json',
         'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': config.userToken
+        'x-authenticated-user-token': globalConfig.userToken
     };
 
     const body = {

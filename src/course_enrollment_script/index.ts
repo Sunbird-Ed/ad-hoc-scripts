@@ -39,7 +39,7 @@ async function processCourseEnrollments() {
             batchMapping[learnerProfileCode] = {};
 
             // Get auth token
-            const { userId } = await getUserId(learnerProfileCode);
+            const { userId, accessToken } = await getUserId(learnerProfileCode);
             const courseCodes = record[2].split(',').map((code: string) => code.trim());
 
             // Process each course code
@@ -71,7 +71,7 @@ async function processCourseEnrollments() {
             for (const nodeId of currentMapping[learnerProfileCode]) {
                 const batchId = batchMapping[learnerProfileCode][nodeId];
                 if (batchId) {
-                    await enrollInCourse(nodeId, batchId, userId);
+                    await enrollInCourse(nodeId, batchId, userId, accessToken);
                     console.log(`  Enrolled in course ${nodeId}, batch ${batchId}`);
                 }
             }
@@ -88,7 +88,7 @@ async function processCourseEnrollments() {
             results.push({
                 originalRow: record,
                 status: 'Failure',
-                errorMessage: error?.response?.data || error.message || 'Unknown error occurred'
+                errorMessage: error.message || 'Unknown error occurred'
             });
             console.error(`Error processing learner profile ${learnerProfileCode}:`, error.message);
 
@@ -107,11 +107,11 @@ async function processCourseEnrollments() {
     writeResultsToCSV(headerRow, results);
 
     console.log('Finished processing all learner profiles');
-    console.log(`Results have been saved to ${path.join(__dirname, '..', 'results', 'course-enrollment-status.csv')}`);
+    console.log(`Results have been saved to ${path.join(__dirname, '..', 'reports', 'course-enrollment-status.csv')}`);
 }
 
 function writeResultsToCSV(headerRow: string[], results: ProcessingResult[]) {
-    const resultsDir = path.join(__dirname, '..', 'results');
+    const resultsDir = path.join(__dirname, '..', 'reports');
     if (!fs.existsSync(resultsDir)) {
         fs.mkdirSync(resultsDir);
     }

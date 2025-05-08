@@ -4,6 +4,7 @@ import { questionConfig } from '../config/questionConfigs';
 import { routes } from '../config/routes';
 import { QuestionResponse } from '../types';
 import { config } from '../config/config';
+import globalConfig from '../../globalConfigs';
 
 interface Option {
     text: string;
@@ -157,7 +158,7 @@ export async function createQuestion(
         'X-Channel-Id': assessmentConfig.channelId,
         'Content-Type': 'application/json',
         'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': config.userToken
+        'x-authenticated-user-token': globalConfig.userToken
     };
 
     try {

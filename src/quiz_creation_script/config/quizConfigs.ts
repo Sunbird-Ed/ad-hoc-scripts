@@ -1,7 +1,7 @@
 import globalConfig from "../../globalConfigs";
 
 export const assessmentConfig = {
-    csvPath: process.env.CSV_PATH || './data/assessment.csv',
+    csvPath: process.env.QUIZ_CSV_PATH || './data/assessment.csv',
     questionCsvPath: process.env.QUESTION_CSV_PATH || './data/questions.csv',
     mimeType: process.env.MIME_TYPE || 'application/vnd.ekstep.ecml-archive',
     createdBy: globalConfig.createdBy || '927c2094-987f-4e8f-8bd5-8bf93e3d2e8a',
