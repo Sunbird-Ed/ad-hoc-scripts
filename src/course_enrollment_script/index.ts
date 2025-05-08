@@ -7,7 +7,7 @@ import path from 'path';
 import { getAuthToken } from '../services/authService';
 
 interface CourseMapping {
-    [key: string]: string[];
+    [key: string]: Map<string, string>;
 }
 
 interface BatchMapping {
@@ -35,7 +35,7 @@ async function processCourseEnrollments() {
 
         try {
             // Initialize mappings for this learner
-            currentMapping[learnerProfileCode] = [];
+            currentMapping[learnerProfileCode] = new Map();
             batchMapping[learnerProfileCode] = {};
 
             // Get auth token
@@ -46,11 +46,11 @@ async function processCourseEnrollments() {
             for (const courseCode of courseCodes) {
                 try {
                     console.log(`  Searching for course code: ${courseCode}`);
-                    const nodeId = await searchCourse(courseCode);
+                    const { identifier: nodeId, name } = await searchCourse(courseCode);
                     if (!nodeId) {
                         throw new Error(`Course not found for code: ${courseCode}`);
                     }
-                    currentMapping[learnerProfileCode].push(nodeId);
+                    currentMapping[learnerProfileCode].set(nodeId, name);
 
                     const batchId = await getBatchList(nodeId);
                     if (!batchId) {
@@ -68,7 +68,7 @@ async function processCourseEnrollments() {
             console.log(`Successfully created learner profile for ${learnerProfileCode}`);
 
             // Perform enrollments
-            for (const nodeId of currentMapping[learnerProfileCode]) {
+            for (const [nodeId, _] of currentMapping[learnerProfileCode]) {
                 const batchId = batchMapping[learnerProfileCode][nodeId];
                 if (batchId) {
                     await enrollInCourse(nodeId, batchId, userId, accessToken);
@@ -116,7 +116,7 @@ function writeResultsToCSV(headerRow: string[], results: ProcessingResult[]) {
         fs.mkdirSync(resultsDir);
     }
     const reportPath = path.join(resultsDir, 'course-enrollment-status.csv');
-    
+
     // Convert rows to CSV format with proper escaping
     const csvRows = results.map(result => {
         const row = [...result.originalRow, result.status, result.errorMessage];
