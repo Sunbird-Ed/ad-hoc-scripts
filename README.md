@@ -4,60 +4,24 @@ This repository contains scripts for quiz creation and course enrollment in the 
 
 ## Prerequisites
 
-1. Node.js and npm installed
-2. TypeScript installed globally (`npm install -g typescript`)
-3. Required environment variables configured (see Configuration section)
+### Software Requirements
+1. Node.js (v18.0.0 or higher)
+   - Download from: https://nodejs.org/
+   - Verify installation: `node --version`
 
-## Installation
+2. npm (v9.0.0 or higher)
+   - Included with Node.js installation
+   - Verify installation: `npm --version`
 
-```bash
-npm install
-```
+3. TypeScript (v5.0.0 or higher)
+   - Install globally: `npm install -g typescript`
+   - Verify installation: `tsc --version`
 
-## Running the Scripts
-
-### 1. Quiz Creation Script
-
-To run the quiz creation script:
-
-1. Place your CSV files in the `data` directory:
-   - Quiz data: `data/quiz_data.csv`
-   - Question data: `data/question_data.csv`
-
-2. Set the required environment variables (see Configuration section)
-
-3. Run the script:
-```bash
-npm run start:quiz
-```
-
-### 2. Course Enrollment Script
-
-To run the course enrollment script:
-
-1. Place your enrollment data CSV in the `data` directory:
-   - Enrollment data: `data/enrollment_data.csv`
-
-2. Set the required environment variables (see Configuration section)
-
-3. Run the script:
-```bash
-npm run start:course
-```
-
-## Status Reports
-
-The scripts will generate status reports in the following locations:
-
-### Quiz Creation Reports
-- `reports/question_status.csv`: Contains status of question creation status
-- `reports/quiz_report.csv`: Contains status of quiz creation operations
-- `reports/quiz_question_status.csv`: Contains status of question creation and attachment to quizzes
-
-### Course Enrollment Reports
-- `reports/course-enrollment-status.csv`: Contains status of course enrollment operations
-
-These reports will contain detailed information about the success/failure of each operation, including any error messages if applicable.
+### Environment Setup
+1. Required environment variables configured (see Configuration section)
+2. Valid Sunbird API credentials
+3. Content creator account with appropriate permissions
+4. Access to the organization's channel ID
 
 ## Configuration
 
@@ -128,6 +92,57 @@ LEARNER_COURSE_CSV_PATH=./data/learner-profile-course.csv
 USER_LEARNER_PATH=./data/user-learner-profile.csv
 # Path to the user learner profile CSV file that contains user information
 ```
+
+## Installation
+
+```bash
+npm install
+```
+
+## Running the Scripts
+
+### 1. Quiz Creation Script
+
+To run the quiz creation script:
+
+1. Place your CSV files in the `data` directory:
+   - Quiz data: `data/quiz_data.csv`
+   - Question data: `data/question_data.csv`
+
+2. Set the required environment variables (see Configuration section)
+
+3. Run the script:
+```bash
+npm run start:quiz
+```
+
+### 2. Course Enrollment Script
+
+To run the course enrollment script:
+
+1. Place your enrollment data CSV in the `data` directory:
+   - Enrollment data: `data/enrollment_data.csv`
+
+2. Set the required environment variables (see Configuration section)
+
+3. Run the script:
+```bash
+npm run start:course
+```
+
+## Status Reports
+
+The scripts will generate status reports in the following locations:
+
+### Quiz Creation Reports
+- `reports/question_status.csv`: Contains status of question creation status
+- `reports/quiz_report.csv`: Contains status of quiz creation operations
+- `reports/quiz_question_status.csv`: Contains status of question creation and attachment to quizzes
+
+### Course Enrollment Reports
+- `reports/course-enrollment-status.csv`: Contains status of course enrollment operations
+
+These reports will contain detailed information about the success/failure of each operation, including any error messages if applicable.
 
 ## Troubleshooting
 
