@@ -107,7 +107,6 @@ async function processCourseEnrollments() {
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    // Write final results
     writeResultsToCSV(headerRow, results);
 
     console.log('Finished processing all learner profiles');
