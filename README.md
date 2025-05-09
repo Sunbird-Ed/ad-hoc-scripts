@@ -124,17 +124,20 @@ npm run start:quiz
 
 To run the course enrollment script:
 
-1. Place your enrollment data CSV in the `data` directory:
-   - Enrollment data: `data/enrollment_data.csv`
+1. Place your learner profile with course data CSV in the `data` directory:
+   - Enrollment data: `data/learner-profile-course.csv`
 
-2. Set the required environment variables (see Configuration section)
+2. Place your user to learner profile data CSV in the `data` directory:
+   - Enrollment data: `data/user-learner-profile.csv`
 
-3. Run the script to create Learner Profile:
+3. Set the required environment variables (see Configuration section)
+
+4. Run the script to create Learner Profile:
 ```bash
 npm run start:learnerProfile
 ```
 
-4. Run the script to enroll to the course:
+5. Run the script to enroll to the course:
 ```bash
 npm run start:enroll
 ```
