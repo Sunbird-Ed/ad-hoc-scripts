@@ -43,8 +43,8 @@ async function processQuestionCsv() {
                     const { exists, question = false, identifier, score } = await searchContent(code, true);
                     if (exists) {
                         if(question && identifier){
-                            questionNodeMap[code] = identifier;
-                            questionScoreMap[code] = score;
+                            questionNodeMap[`${code}`] = identifier;
+                            questionScoreMap[`${code}`] = score;
                             statusReport.push(row.concat(['Skipped', `Question with code ${code} already exists`]));
                             continue;
                         }
@@ -55,7 +55,7 @@ async function processQuestionCsv() {
                     const title = row[1];
                     const maxScore = parseInt(row[row.length - 1], 10);
 
-                    questionScoreMap[code] = maxScore;
+                    questionScoreMap[`${code}`]= maxScore;
 
                     const optionPairs = [];
                     for (let i = 2; i < row.length - 1; i += 2) {
@@ -68,7 +68,7 @@ async function processQuestionCsv() {
                     }
 
                     const nodeId = await createQuestion(code, title, optionPairs, maxScore);
-                    questionNodeMap[code] = nodeId;
+                    questionNodeMap[`${code}`]= nodeId;
                     console.log(`Mapped question code ${code} to node_id ${nodeId} with score ${maxScore}`);
                     statusReport.push(row.concat(['Success', 'none']));
                 }
@@ -127,7 +127,7 @@ async function processContentCsv() {
                         contentType,
                         questionsField,
                         'Failed',
-                        `question with code ${missingQuestions.join(', ')} does not exist.`
+                        `question with code ${missingQuestions[0]} does not exist.`
                     ]);
                     continue;
                 }
