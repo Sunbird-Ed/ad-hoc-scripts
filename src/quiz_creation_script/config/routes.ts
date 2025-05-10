@@ -7,4 +7,5 @@ export const routes = {
     questionsRead: '/api/assessment/v1/items/read',
     getToken: '/auth/v1/refresh/token',
     getRefeshToken: '/auth/realms/sunbird/protocol/openid-connect/token',
+    searchContent: '/api/composite/v1/search'
 };

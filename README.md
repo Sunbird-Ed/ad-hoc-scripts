@@ -132,12 +132,12 @@ To run the course enrollment script:
 
 3. Set the required environment variables (see Configuration section)
 
-4. Run the script to create Learner Profile:
+4. Run the script to create Learner Profile for the user:
 ```bash
 npm run start:learnerProfile
 ```
 
-5. Run the script to enroll to the course:
+5. Run the script to enroll user to the course:
 ```bash
 npm run start:enroll
 ```
@@ -152,7 +152,8 @@ The scripts will generate status reports in the following locations:
 - `reports/quiz_question_status.csv`: Contains status of question creation and attachment to quizzes
 
 ### Course Enrollment Reports
-- `reports/course-enrollment-status.csv`: Contains status of course enrollment operations
+- `reports/learner-profile-status.csv`: Contains the learner profile creation status for the user.
+- `reports/enrollment-status.csv`: Contains the course enrollment status for the user.
 
 These reports will contain detailed information about the success/failure of each operation, including any error messages if applicable.
 
