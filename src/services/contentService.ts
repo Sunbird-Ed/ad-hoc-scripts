@@ -11,7 +11,7 @@ export class ContentExistsError extends Error {
     }
 }
 
-export async function searchContent(code: string, questionExists?: boolean): Promise<any> {
+export async function searchContent(code: string, questionExists?: boolean, quizExists?: boolean): Promise<any> {
     try {
         const response = await axios({
             method: 'post',
@@ -49,10 +49,13 @@ export async function searchContent(code: string, questionExists?: boolean): Pro
 
         if (response.data.result.count && response.data.result.count > 0) {
             if (questionExists) {
-                const content = response.data.result.content[0];
+                const content = response.data.result.items[0];
                 if (content.type === "mcq" && content.itemType === "UNIT") {
-                    throw new ContentExistsError(code, true);
+                    return { exists: true, question: true, identifier: content.identifier, score: content.maxScore };
                 }
+            }
+            else if (quizExists) {
+                return { exists: true, quiz: true };
             }
             throw new ContentExistsError(code);
         }
