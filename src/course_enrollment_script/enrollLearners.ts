@@ -27,8 +27,10 @@ interface EnrollmentResult {
 }
 
 interface LearnerProfileStatus {
-    userId: string;
     learnerProfileCode: string;
+    learnerProfile: string;
+    courseCode: string;
+    expiryDate: string;
     status: string;
     reason: string;
 }
@@ -61,12 +63,17 @@ async function processEnrollments() {
     // Create a map of learner profile statuses
     for (const row of learnerProfileStatusData) {
         const status: LearnerProfileStatus = {
-            userId: row[0],
-            learnerProfileCode: row[1],
-            status: row[2],
-            reason: row[3]
+            learnerProfileCode: row[0],
+            learnerProfile: row[1],
+            courseCode: row[2],
+            expiryDate: row[3],
+            status: row[4],
+            reason: row[5]
         };
-        learnerProfileStatus.set(`${status.userId}_${status.learnerProfileCode}`, status);
+        // Only consider successfully created profiles
+        if (status.status === 'Success') {
+            learnerProfileStatus.set(status.learnerProfileCode, status);
+        }
     }
 
     await getAuthToken()
@@ -118,22 +125,23 @@ async function processEnrollments() {
                 userEnrollments.set(email, new Set());
             }
 
+            // Track if any profile was successfully processed
+            let anyProfileSuccess = false;
+
             // Process each learner profile for this user
             for (const learnerProfileCode of learnerProfileCodes) {
                 console.log(`  Processing learner profile: ${learnerProfileCode}`);
 
-                // Check learner profile status
-                const statusKey = `${email}_${learnerProfileCode}`;
-                const profileStatus = learnerProfileStatus.get(statusKey);
-
-                if (!profileStatus || profileStatus.status !== 'Success') {
-                    console.log(`  Learner profile ${learnerProfileCode} was not successfully created, skipping enrollments...`);
+                // Check if this learner profile was successfully created
+                const profileStatus = learnerProfileStatus.get(learnerProfileCode);
+                if (!profileStatus) {
+                    console.log(`  Learner profile ${learnerProfileCode} was not successfully created, skipping...`);
                     results.push({
                         userId: email,
                         learnerProfile: learnerProfileCode,
                         courseCode: 'none',
                         status: 'Skipped',
-                        reason: profileStatus ? profileStatus.reason : 'Learner profile does not exist'
+                        reason: 'Learner profile does not exist'
                     });
                     continue;
                 }
@@ -158,6 +166,9 @@ async function processEnrollments() {
                     const courseCode = nodeIdToCodeMapping[nodeId] || 'unknown';
                     console.log(`    - ${courseCode} (${nodeId})`);
                 });
+
+                // Track if this profile had any successful enrollments
+                let profileSuccess = false;
 
                 // Perform enrollments for each course
                 for (const [nodeId, courseName] of Object.entries(courseMap)) {
@@ -190,6 +201,8 @@ async function processEnrollments() {
                                 status: 'Success',
                                 reason: 'none'
                             });
+                            profileSuccess = true;
+                            anyProfileSuccess = true;
                         } catch (enrollError: any) {
                             let errorMessage;
                             if (enrollError?.response?.data?.params?.errmsg) {
@@ -216,6 +229,11 @@ async function processEnrollments() {
                             reason: 'No batch found for course'
                         });
                     }
+                }
+
+                // If this profile had any successful enrollments, write intermediate results
+                if (profileSuccess) {
+                    writeResultsToCSV(headerRow, results);
                 }
             }
 
