@@ -288,6 +288,9 @@ async function processContentCsv() {
                     await publishContent(identifier);
                     statusReport[statusReport.length - 1][statusReport[0].length - 2] = 'Live';
                     console.log(`Quiz ${code} published successfully`);
+                    
+                    // Add delay after publishing to prevent rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 } catch (error: any) {
                     const currentStatus = statusReport[statusReport.length - 1];
                     currentStatus[currentStatus.length - 1] = error.message;
