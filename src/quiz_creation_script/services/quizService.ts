@@ -20,6 +20,7 @@ interface ContentRequestBody {
             creator: string;
             contentType: string;
             primaryCategory?: string;
+            langauge: string[];
         }
     }
 }
@@ -51,7 +52,8 @@ export async function createAssessment(
     code: string,
     name: string,
     maxAttempts: number,
-    contentType: string
+    contentType: string,
+    language: string
 ): Promise<{ identifier: string; versionKey: string }> {
     
     const contentBody: ContentRequestBody['request']['content'] = {
@@ -59,6 +61,7 @@ export async function createAssessment(
         name,
         maxAttempts,
         description: "Enter description for Assessment",
+        langauge: [language],
         createdBy: assessmentConfig.createdBy,
         organisation: assessmentConfig.organisation,
         createdFor: [assessmentConfig.channelId],

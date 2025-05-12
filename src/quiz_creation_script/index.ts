@@ -112,6 +112,7 @@ async function processContentCsv() {
                 const code = row[0];
                 const name = row[1];
                 const maxAttempts = parseInt(row[2], 10);
+                const language = row[3];
                 const contentType = row[4];
                 const questionCodes = row[5].split(',').map(code => code.trim());
 
@@ -150,7 +151,7 @@ async function processContentCsv() {
                     }
                      
                     // Create content and get identifier and versionKey
-                    const { identifier, versionKey } = await createAssessment(code, name, maxAttempts, contentType);
+                    const { identifier, versionKey } = await createAssessment(code, name, maxAttempts, contentType, language);
 
                     // Ensure questions field is properly quoted if it contains commas
                     const questionsField = row[5].includes(',') ? `"${row[5]}"` : row[5];
