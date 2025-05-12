@@ -152,7 +152,7 @@ The scripts will generate status reports in the following locations:
 - `reports/quiz_question_status.csv`: Contains status of question creation and attachment to quizzes
 
 ### Course Enrollment Reports
-- `reports/learner-profile-status.csv`: Contains the learner profile creation status for the user.
+- `reports/learner-profile-status.csv`: Contains the learner profile creation status.
 - `reports/enrollment-status.csv`: Contains the course enrollment status for the user.
 
 These reports will contain detailed information about the success/failure of each operation, including any error messages if applicable.
