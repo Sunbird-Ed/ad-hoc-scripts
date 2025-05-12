@@ -106,81 +106,81 @@ export async function updateLearnerProfile(
     learnerId: string,
     courseMapping: Map<any, string>,
     record: string[]
-  ) {
+) {
     try {
-      const children: string[] = [];
-      const hierarchyNodes: Record<string, any> = {};
-  
-      // Build the child nodes from the courseMapping
-      for (const [nodeId, name] of courseMapping.entries()) {
-        const stringNodeId = String(nodeId); // convert all keys to string
-        children.push(stringNodeId);
-  
-        hierarchyNodes[stringNodeId] = {
-          name,
-          children: [],
-          root: false
-        };
-      }
-  
-      // Create the PATCH payload structure
-      const payload = {
-        request: {
-          data: {
-            nodesModified: {
-              [learnerId]: {
-                root: true,
-                objectType: "Content",
-                metadata: {
-                  name: record[1],
-                  code: learnerCode,
-                  description: "Learner Profile for course enrollment",
-                  createdBy: courseConfig.createdBy,
-                  organisation: courseConfig.organisation,
-                  createdFor: [config.channelId],
-                  framework: courseConfig.framework,
-                  mimeType: "application/vnd.ekstep.content-collection",
-                  creator: courseConfig.creator,
-                  expiry_date: record[3],
-                  primaryCategory: "Learner Profile"
-                },
-                isNew: false
-              }
-            },
-            hierarchy: {
-              [learnerId]: {
-                name: record[1],
-                children,
-                root: true
-              },
-              ...hierarchyNodes
-            },
-            lastUpdatedBy: courseConfig.createdBy
-          }
+        const children: string[] = [];
+        const hierarchyNodes: Record<string, any> = {};
+
+        // Build the child nodes from the courseMapping
+        for (const [nodeId, name] of courseMapping.entries()) {
+            const stringNodeId = String(nodeId); // convert all keys to string
+            children.push(stringNodeId);
+
+            hierarchyNodes[stringNodeId] = {
+                name,
+                children: [],
+                root: false
+            };
         }
-      };
-  
-      // Send PATCH request
-      const response = await axios({
-        method: 'patch',
-        url: `${config.baseUrl}${routes.updateLearnerProfile}`, // should be /api/collection/v1/hierarchy/update
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Channel-Id': config.channelId,
-          'Authorization': config.apiAuthKey,
-          'x-authenticated-user-token': globalConfig.creatorUserToken
-        },
-        data: payload
-      });
-  
-      console.log(`Updated learner profile for ${learnerCode}:`, JSON.stringify(response.data));
-      return response.data;
+
+        // Create the PATCH payload structure
+        const payload = {
+            request: {
+                data: {
+                    nodesModified: {
+                        [learnerId]: {
+                            root: true,
+                            objectType: "Content",
+                            metadata: {
+                                name: record[1],
+                                code: learnerCode,
+                                description: "Learner Profile for course enrollment",
+                                createdBy: courseConfig.createdBy,
+                                organisation: courseConfig.organisation,
+                                createdFor: [config.channelId],
+                                framework: courseConfig.framework,
+                                mimeType: "application/vnd.ekstep.content-collection",
+                                creator: courseConfig.creator,
+                                expiry_date: record[3],
+                                primaryCategory: "Learner Profile"
+                            },
+                            isNew: false
+                        }
+                    },
+                    hierarchy: {
+                        [learnerId]: {
+                            name: record[1],
+                            children,
+                            root: true
+                        },
+                        ...hierarchyNodes
+                    },
+                    lastUpdatedBy: courseConfig.createdBy
+                }
+            }
+        };
+
+        // Send PATCH request
+        const response = await axios({
+            method: 'patch',
+            url: `${config.baseUrl}${routes.updateLearnerProfile}`, // should be /api/collection/v1/hierarchy/update
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Channel-Id': config.channelId,
+                'Authorization': config.apiAuthKey,
+                'x-authenticated-user-token': globalConfig.creatorUserToken
+            },
+            data: payload
+        });
+
+        console.log(`Updated learner profile for ${learnerCode}:`, JSON.stringify(response.data));
+        return response.data;
     } catch (error) {
-      console.error(`Error updating learner profile for ${learnerCode}:`, error);
-      throw error;
+        console.error(`Error updating learner profile for ${learnerCode}:`, error);
+        throw error;
     }
-  }
-  
+}
+
 
 export async function getBatchList(courseId: string): Promise<string | null> {
     try {
@@ -299,7 +299,7 @@ export async function searchLearnerProfile(profileCode: string): Promise<string 
         }
 
         const profile = content[0];
-        if (profile.contentType !== 'Resource' || !profile.children) {
+        if (profile.contentType !== 'Resource' || !profile.children || profile.primaryCategory !== 'Learner Profile') {
             console.log(`Invalid learner profile ${profileCode}: wrong content type or missing required fields`);
             return null;
         }
@@ -347,8 +347,8 @@ export async function getCourseNodeIds(courseIds: string[]): Promise<{ [nodeId: 
 
         try {
             const response = await axios.get(`${config.baseUrl}${routes.readContent}/${courseId}`, { headers });
-            const {status, contentType, code} = response.data.result.content;
-            if(status !== 'Live' || contentType !== 'Course' ||!code) {
+            const { status, contentType, code } = response.data.result.content;
+            if (status !== 'Live' || contentType !== 'Course' || !code) {
                 console.log(`Invalid course ${courseId}: wrong status or content type or missing required fields`);
                 continue;
             }
