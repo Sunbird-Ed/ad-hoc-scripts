@@ -5,19 +5,10 @@ import { enrollInCourse, getBatchList } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
-
-interface CourseMapping {
-    [key: string]: { [nodeId: string]: string };
-}
-
-interface BatchMapping {
-    [key: string]: { [nodeId: string]: string | null };
-}
-
-interface NodeIdToCodeMapping {
-    [nodeId: string]: string;
-}
-
+import axios from 'axios';
+import globalConfig from '../globalConfigs';
+import { config } from './config/config';
+import { routes } from './config/routes';
 interface EnrollmentResult {
     userId: string;
     learnerProfile: string;
@@ -26,87 +17,105 @@ interface EnrollmentResult {
     reason: string;
 }
 
-interface LearnerProfileStatus {
-    learnerProfileCode: string;
-    learnerProfile: string;
-    courseCode: string;
-    expiryDate: string;
-    status: string;
-    reason: string;
-}
-
 function parseLearnerProfileCodes(code: string): string[] {
     // Remove any quotes and split by comma
     return code.replace(/"/g, '').split(',').map(c => c.trim()).filter(c => c);
 }
 
-async function processEnrollments() {
-    // Check if required environment variables are set
-    if (!process.env.COURSE_MAPPING || !process.env.BATCH_MAPPING || !process.env.NODEID_TO_CODE_MAPPING) {
-        console.error('Error: Required environment variables COURSE_MAPPING, BATCH_MAPPING, and NODEID_TO_CODE_MAPPING are not set.');
-        console.error('Please run the learner profile creation script first and use the provided command.');
-        process.exit(1);
-    }
+async function searchLearnerProfile(profileCode: string): Promise<string | null> {
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Channel-Id': config.channelId,
+        'Authorization': config.apiAuthKey,
+        'x-authenticated-user-token': globalConfig.creatorUserToken
+    };
 
-    // Check if learner profile status file exists
-    const learnerProfileStatusPath = path.join(__dirname, '..', 'reports', 'learner-profile-status.csv');
-    if (!fs.existsSync(learnerProfileStatusPath)) {
-        console.error('Error: learner-profile-status.csv not found. Please run the learner profile creation script first.');
-        process.exit(1);
-    }
+    const body = {
+        request: {
+            filters: {
+                code: profileCode
+            }
+        }
+    };
 
-    // Read learner profile status
-    const learnerProfileStatusRows = await parseCsv(learnerProfileStatusPath);
-    const learnerProfileStatusData = learnerProfileStatusRows.slice(1);
-    const learnerProfileStatus = new Map<string, LearnerProfileStatus>();
-    
-    // Create a map of learner profile statuses
-    for (const row of learnerProfileStatusData) {
-        const status: LearnerProfileStatus = {
-            learnerProfileCode: row[0],
-            learnerProfile: row[1],
-            courseCode: row[2],
-            expiryDate: row[3],
-            status: row[4],
-            reason: row[5]
+    try {
+        const response = await axios.post(`${config.baseUrl}${routes.searchCourse}`, body, { headers });
+        const content = response.data.result.content;
+        const count = response.data.result.count;
+
+        if (count === 0 || !content || content.length === 0) {
+            console.log(`No content found for learner profile ${profileCode}`);
+            return null;
+        }
+
+        const profile = content[0];
+        if (profile.contentType !== 'Resource' || !profile.children) {
+            console.log(`Invalid learner profile ${profileCode}: wrong content type or missing required fields`);
+            return null;
+        }
+
+        return profile.identifier;
+    } catch (error) {
+        console.error(`Error searching for learner profile ${profileCode}:`, error);
+        return null;
+    }
+}
+
+async function getProfileCourses(profileId: string): Promise<string[]> {
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Channel-Id': config.channelId,
+        'Authorization': config.apiAuthKey,
+        'x-authenticated-user-token': globalConfig.creatorUserToken
+    };
+
+    try {
+        const response = await axios.get(`${config.baseUrl}${routes.readContent}/${profileId}`, { headers });
+        const children = response.data.result.content.children;
+
+        if (!children || !Array.isArray(children)) {
+            console.log(`No courses found in learner profile ${profileId}`);
+            return [];
+        }
+
+        return children.map(child => child.identifier);
+    } catch (error) {
+        console.error(`Error getting courses for profile ${profileId}:`, error);
+        return [];
+    }
+}
+
+async function getCourseNodeIds(courseIds: string[]): Promise<{ [nodeId: string]: string }> {
+    const nodeIdToCourseCodeMap: { [nodeId: string]: string } = {};
+    for (const courseId of courseIds) {
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-Channel-Id': config.channelId,
+            'Authorization': config.apiAuthKey,
+            'x-authenticated-user-token': globalConfig.creatorUserToken
         };
-        // Only consider successfully created profiles
-        if (status.status === 'Success') {
-            learnerProfileStatus.set(status.learnerProfileCode, status);
+
+        try {
+            const response = await axios.get(`${config.baseUrl}${routes.readContent}/${courseId}`, { headers });
+            const {status, contentType, code} = response.data.result.content;
+            if(status !== 'Live' || contentType !== 'Course' ||!code) {
+                console.log(`Invalid course ${courseId}: wrong status or content type or missing required fields`);
+                continue;
+            }
+            nodeIdToCourseCodeMap[courseId] = code;
+        } catch (error) {
+            console.error(`Error searching for course ${courseId}:`, error);
         }
     }
+    return nodeIdToCourseCodeMap;
+}
 
-    await getAuthToken()
+async function processEnrollments() {
+    await getAuthToken();
     const rows = await parseCsv(courseConfig.userLearnerPath);
     const dataRows = rows.slice(1);
     const headerRow = ['userId', 'learnerProfile', 'courseCode', 'enrollmentStatus', 'reason'];
     const results: EnrollmentResult[] = [];
-
-    // Load the mappings from environment variables
-    let currentMapping: CourseMapping;
-    let batchMapping: BatchMapping;
-    let nodeIdToCodeMapping: NodeIdToCodeMapping;
-    
-    try {
-        currentMapping = JSON.parse(process.env.COURSE_MAPPING);
-        batchMapping = JSON.parse(process.env.BATCH_MAPPING);
-        nodeIdToCodeMapping = JSON.parse(process.env.NODEID_TO_CODE_MAPPING);
-        
-        // Debug: Log the mappings
-        console.log('\nLoaded Course Mappings:');
-        Object.entries(currentMapping).forEach(([profile, courses]) => {
-            console.log(`  ${profile}: ${Object.keys(courses).length} courses`);
-        });
-        
-        console.log('\nLoaded Batch Mappings:');
-        Object.entries(batchMapping).forEach(([profile, batches]) => {
-            console.log(`  ${profile}: ${Object.keys(batches).length} batches`);
-        });
-        console.log('\n');
-    } catch (error) {
-        console.error('Error parsing mappings from environment variables:', error);
-        process.exit(1);
-    }
 
     // Track which courses each user has been enrolled in
     const userEnrollments = new Map<string, Set<string>>();
@@ -125,17 +134,13 @@ async function processEnrollments() {
                 userEnrollments.set(email, new Set());
             }
 
-            // Track if any profile was successfully processed
-            let anyProfileSuccess = false;
-
             // Process each learner profile for this user
             for (const learnerProfileCode of learnerProfileCodes) {
                 console.log(`  Processing learner profile: ${learnerProfileCode}`);
 
-                // Check if this learner profile was successfully created
-                const profileStatus = learnerProfileStatus.get(learnerProfileCode);
-                if (!profileStatus) {
-                    console.log(`  Learner profile ${learnerProfileCode} was not successfully created, skipping...`);
+                // Search for the learner profile
+                const profileId = await searchLearnerProfile(learnerProfileCode);
+                if (!profileId) {
                     results.push({
                         userId: email,
                         learnerProfile: learnerProfileCode,
@@ -146,37 +151,40 @@ async function processEnrollments() {
                     continue;
                 }
 
-                // Get course mappings for this learner profile
-                const courseMap = currentMapping[learnerProfileCode];
-                if (!courseMap || Object.keys(courseMap).length === 0) {
-                    console.log(`  No course mappings found for profile ${learnerProfileCode}`);
+                // Get courses from the profile
+                const courseNodeIds = await getProfileCourses(profileId);
+                if (courseNodeIds.length === 0) {
                     results.push({
                         userId: email,
                         learnerProfile: learnerProfileCode,
                         courseCode: 'none',
-                        status: 'Failure',
-                        reason: 'No course codes found for the given learner code'
+                        status: 'Skipped',
+                        reason: 'No courses found in learner profile'
                     });
                     continue;
                 }
 
-                // Debug: Log the course mappings for this profile
-                console.log(`  Found ${Object.keys(courseMap).length} courses for profile ${learnerProfileCode}:`);
-                Object.entries(courseMap).forEach(([nodeId, courseName]) => {
-                    const courseCode = nodeIdToCodeMapping[nodeId] || 'unknown';
-                    console.log(`    - ${courseCode} (${nodeId})`);
-                });
+                // Get node IDs for course codes
+                const nodeIdToCourseCodeMap = await getCourseNodeIds(courseNodeIds);
+                const nodeIds = Object.keys(nodeIdToCourseCodeMap);
+                if (nodeIds.length === 0) {
+                    results.push({
+                        userId: email,
+                        learnerProfile: learnerProfileCode,
+                        courseCode: 'none',
+                        status: 'Skipped',
+                        reason: 'No valid courses found for learner profile'
+                    });
+                    continue;
+                }
 
-                // Track if this profile had any successful enrollments
-                let profileSuccess = false;
+                // Enroll in each course
+                for (const nodeId of nodeIds) {
+                    const courseCode = nodeIdToCourseCodeMap[nodeId];
 
-                // Perform enrollments for each course
-                for (const [nodeId, courseName] of Object.entries(courseMap)) {
-                    const courseCode = nodeIdToCodeMapping[nodeId] || 'unknown';
-                    
                     // Skip if user is already enrolled in this course
                     if (userEnrollments.get(email)?.has(nodeId)) {
-                        console.log(`    User already enrolled in course ${courseCode} (${nodeId})`);
+                        console.log(`    User already enrolled in course ${courseCode}`);
                         results.push({
                             userId: email,
                             learnerProfile: learnerProfileCode,
@@ -190,7 +198,7 @@ async function processEnrollments() {
                     // Get batch ID for the course
                     const batchId = await getBatchList(nodeId);
                     if (!batchId) {
-                        console.log(`    No batch found for course ${courseCode} (${nodeId})`);
+                        console.log(`    No batch found for course ${courseCode}`);
                         results.push({
                             userId: email,
                             learnerProfile: learnerProfileCode,
@@ -203,7 +211,7 @@ async function processEnrollments() {
 
                     try {
                         await enrollInCourse(nodeId, batchId, userId, accessToken);
-                        console.log(`    Enrolled in course ${courseCode} (${nodeId}), batch ${batchId}`);
+                        console.log(`    Enrolled in course ${courseCode}, batch ${batchId}`);
                         // Mark course as enrolled for this user
                         userEnrollments.get(email)?.add(nodeId);
                         results.push({
@@ -213,8 +221,6 @@ async function processEnrollments() {
                             status: 'Success',
                             reason: 'none'
                         });
-                        profileSuccess = true;
-                        anyProfileSuccess = true;
                     } catch (enrollError: any) {
                         let errorMessage;
                         if (enrollError?.response?.data?.params?.errmsg) {
@@ -223,10 +229,10 @@ async function processEnrollments() {
                             errorMessage = enrollError?.message || 'Failed to enroll to the course';
                         }
                         console.error(`    Failed to enroll in course ${courseCode}:`, enrollError.message);
-                        
+
                         // Check if error indicates user is already enrolled
                         const isAlreadyEnrolled = errorMessage.toLowerCase().includes('user has already enrolled');
-                        
+
                         results.push({
                             userId: email,
                             learnerProfile: learnerProfileCode,
@@ -236,13 +242,7 @@ async function processEnrollments() {
                         });
                     }
                 }
-
-                // If this profile had any successful enrollments, write intermediate results
-                if (profileSuccess) {
-                    writeResultsToCSV(headerRow, results);
-                }
             }
-
         } catch (error: any) {
             let errorMessage;
             if (error?.response?.data?.params?.errmsg) {
@@ -250,7 +250,7 @@ async function processEnrollments() {
             } else {
                 errorMessage = error?.message || 'Failed to process enrollments';
             }
-            
+
             // Record failure for all learner profiles of this user
             for (const learnerProfileCode of learnerProfileCodes) {
                 results.push({
@@ -261,17 +261,16 @@ async function processEnrollments() {
                     reason: errorMessage
                 });
             }
-            
-            console.error(`Error processing enrollments for ${email}:`, errorMessage);
 
-            // Write intermediate results to CSV after each failure
-            writeResultsToCSV(headerRow, results);
+            console.error(`Error processing enrollments for ${email}:`, errorMessage);
         }
 
+        // Write intermediate results to CSV after each user
+        writeResultsToCSV(headerRow, results);
+
+        // Add delay between users
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
-
-    writeResultsToCSV(headerRow, results);
 
     console.log('Finished processing all enrollments');
     console.log(`Results have been saved to ${path.join(__dirname, '..', 'reports', 'enrollment-status.csv')}`);
@@ -307,4 +306,4 @@ function writeResultsToCSV(headerRow: string[], results: EnrollmentResult[]) {
 }
 
 // Run the script
-processEnrollments().catch(console.error); 
+processEnrollments().catch(console.error);
