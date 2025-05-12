@@ -132,7 +132,7 @@ To run the course enrollment script:
 
 3. Set the required environment variables (see Configuration section)
 
-4. Run the script to create Learner Profile for the user:
+4. Run the script to create Learner Profile:
 ```bash
 npm run start:learnerProfile
 ```
