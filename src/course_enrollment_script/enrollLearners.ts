@@ -211,11 +211,15 @@ async function processEnrollments() {
                                 errorMessage = enrollError?.message || 'Failed to enroll to the course';
                             }
                             console.error(`    Failed to enroll in course ${courseCode}:`, enrollError.message);
+                            
+                            // Check if error indicates user is already enrolled
+                            const isAlreadyEnrolled = errorMessage.toLowerCase().includes('user has already enrolled');
+                            
                             results.push({
                                 userId: email,
                                 learnerProfile: learnerProfileCode,
                                 courseCode: courseCode,
-                                status: 'Failure',
+                                status: isAlreadyEnrolled ? 'Skipped' : 'Failure',
                                 reason: errorMessage || 'Failed to enroll in course'
                             });
                         }
