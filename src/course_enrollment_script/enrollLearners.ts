@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { getUserId } from './services/authService';
 import parseCsv from "../services/csv";
-import { enrollInCourse } from './services/courseService';
+import { enrollInCourse, getBatchList } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
@@ -187,43 +187,9 @@ async function processEnrollments() {
                         continue;
                     }
 
-                    const batchId = batchMapping[learnerProfileCode]?.[nodeId];
-                    if (batchId) {
-                        try {
-                            await enrollInCourse(nodeId, batchId, userId, accessToken);
-                            console.log(`    Enrolled in course ${courseCode} (${nodeId}), batch ${batchId}`);
-                            // Mark course as enrolled for this user
-                            userEnrollments.get(email)?.add(nodeId);
-                            results.push({
-                                userId: email,
-                                learnerProfile: learnerProfileCode,
-                                courseCode: courseCode,
-                                status: 'Success',
-                                reason: 'none'
-                            });
-                            profileSuccess = true;
-                            anyProfileSuccess = true;
-                        } catch (enrollError: any) {
-                            let errorMessage;
-                            if (enrollError?.response?.data?.params?.errmsg) {
-                                errorMessage = enrollError.response.data.params.errmsg;
-                            } else {
-                                errorMessage = enrollError?.message || 'Failed to enroll to the course';
-                            }
-                            console.error(`    Failed to enroll in course ${courseCode}:`, enrollError.message);
-                            
-                            // Check if error indicates user is already enrolled
-                            const isAlreadyEnrolled = errorMessage.toLowerCase().includes('user has already enrolled');
-                            
-                            results.push({
-                                userId: email,
-                                learnerProfile: learnerProfileCode,
-                                courseCode: courseCode,
-                                status: isAlreadyEnrolled ? 'Skipped' : 'Failure',
-                                reason: errorMessage || 'Failed to enroll in course'
-                            });
-                        }
-                    } else {
+                    // Get batch ID for the course
+                    const batchId = await getBatchList(nodeId);
+                    if (!batchId) {
                         console.log(`    No batch found for course ${courseCode} (${nodeId})`);
                         results.push({
                             userId: email,
@@ -231,6 +197,42 @@ async function processEnrollments() {
                             courseCode: courseCode,
                             status: 'Failure',
                             reason: 'No batch found for course'
+                        });
+                        continue;
+                    }
+
+                    try {
+                        await enrollInCourse(nodeId, batchId, userId, accessToken);
+                        console.log(`    Enrolled in course ${courseCode} (${nodeId}), batch ${batchId}`);
+                        // Mark course as enrolled for this user
+                        userEnrollments.get(email)?.add(nodeId);
+                        results.push({
+                            userId: email,
+                            learnerProfile: learnerProfileCode,
+                            courseCode: courseCode,
+                            status: 'Success',
+                            reason: 'none'
+                        });
+                        profileSuccess = true;
+                        anyProfileSuccess = true;
+                    } catch (enrollError: any) {
+                        let errorMessage;
+                        if (enrollError?.response?.data?.params?.errmsg) {
+                            errorMessage = enrollError.response.data.params.errmsg;
+                        } else {
+                            errorMessage = enrollError?.message || 'Failed to enroll to the course';
+                        }
+                        console.error(`    Failed to enroll in course ${courseCode}:`, enrollError.message);
+                        
+                        // Check if error indicates user is already enrolled
+                        const isAlreadyEnrolled = errorMessage.toLowerCase().includes('user has already enrolled');
+                        
+                        results.push({
+                            userId: email,
+                            learnerProfile: learnerProfileCode,
+                            courseCode: courseCode,
+                            status: isAlreadyEnrolled ? 'Skipped' : 'Failure',
+                            reason: errorMessage || 'Failed to enroll in course'
                         });
                     }
                 }

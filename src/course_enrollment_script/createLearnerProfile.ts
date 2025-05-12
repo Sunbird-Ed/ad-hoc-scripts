@@ -103,13 +103,6 @@ async function processLearnerProfiles() {
                     currentMapping[learnerProfileCode].set(nodeId, name);
                     // Save the nodeId to courseCode mapping
                     nodeIdToCodeMapping[nodeId] = courseCode;
-
-                    const batchId = await getBatchList(nodeId);
-                    if (!batchId) {
-                        throw new Error(`No batch found for course: ${nodeId}`);
-                    }
-                    batchMapping[learnerProfileCode][nodeId] = batchId;
-                    console.log(`Found batch ID ${batchId} for course ${nodeId}`);
                 } catch (courseError: any) {
                     throw new Error(`Failed processing course ${courseCode}: ${courseError.message}`);
                 }
