@@ -168,7 +168,6 @@ async function processLearnerProfiles() {
         Object.entries(currentMapping).map(([key, map]) => [key, Object.fromEntries(map)])
     ));
     const batchMappingStr = JSON.stringify(batchMapping);
-    const nodeIdToCodeMappingStr = JSON.stringify(nodeIdToCodeMapping);
 
     // Read existing .env file
     let envContent = '';
@@ -181,11 +180,11 @@ async function processLearnerProfiles() {
     // Remove any existing mapping lines
     envContent = envContent
         .split('\n')
-        .filter(line => !line.startsWith('COURSE_MAPPING=') && !line.startsWith('BATCH_MAPPING=') && !line.startsWith('NODEID_TO_CODE_MAPPING='))
+        .filter(line => !line.startsWith('COURSE_MAPPING=') && !line.startsWith('BATCH_MAPPING='))
         .join('\n');
 
     // Add new mapping lines
-    envContent += `\nCOURSE_MAPPING='${courseMappingStr}'\nBATCH_MAPPING='${batchMappingStr}'\nNODEID_TO_CODE_MAPPING='${nodeIdToCodeMappingStr}'`;
+    envContent += `\nCOURSE_MAPPING='${courseMappingStr}'\nBATCH_MAPPING='${batchMappingStr}'`;
 
     // Write back to .env file
     fs.writeFileSync('.env', envContent);

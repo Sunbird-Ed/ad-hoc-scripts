@@ -1,14 +1,10 @@
 import fs from 'fs';
 import { getUserId } from './services/authService';
 import parseCsv from "../services/csv";
-import { enrollInCourse, getBatchList } from './services/courseService';
+import { enrollInCourse, getBatchList, getCourseNodeIds, getProfileCourses, searchLearnerProfile } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
-import axios from 'axios';
-import globalConfig from '../globalConfigs';
-import { config } from './config/config';
-import { routes } from './config/routes';
 interface EnrollmentResult {
     userId: string;
     learnerProfile: string;
@@ -20,94 +16,6 @@ interface EnrollmentResult {
 function parseLearnerProfileCodes(code: string): string[] {
     // Remove any quotes and split by comma
     return code.replace(/"/g, '').split(',').map(c => c.trim()).filter(c => c);
-}
-
-async function searchLearnerProfile(profileCode: string): Promise<string | null> {
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Channel-Id': config.channelId,
-        'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': globalConfig.creatorUserToken
-    };
-
-    const body = {
-        request: {
-            filters: {
-                code: profileCode
-            }
-        }
-    };
-
-    try {
-        const response = await axios.post(`${config.baseUrl}${routes.searchCourse}`, body, { headers });
-        const content = response.data.result.content;
-        const count = response.data.result.count;
-
-        if (count === 0 || !content || content.length === 0) {
-            console.log(`No content found for learner profile ${profileCode}`);
-            return null;
-        }
-
-        const profile = content[0];
-        if (profile.contentType !== 'Resource' || !profile.children) {
-            console.log(`Invalid learner profile ${profileCode}: wrong content type or missing required fields`);
-            return null;
-        }
-
-        return profile.identifier;
-    } catch (error) {
-        console.error(`Error searching for learner profile ${profileCode}:`, error);
-        return null;
-    }
-}
-
-async function getProfileCourses(profileId: string): Promise<string[]> {
-    const headers = {
-        'Content-Type': 'application/json',
-        'X-Channel-Id': config.channelId,
-        'Authorization': config.apiAuthKey,
-        'x-authenticated-user-token': globalConfig.creatorUserToken
-    };
-
-    try {
-        const response = await axios.get(`${config.baseUrl}${routes.readContent}/${profileId}`, { headers });
-        const children = response.data.result.content.children;
-
-        if (!children || !Array.isArray(children)) {
-            console.log(`No courses found in learner profile ${profileId}`);
-            return [];
-        }
-
-        return children.map(child => child.identifier);
-    } catch (error) {
-        console.error(`Error getting courses for profile ${profileId}:`, error);
-        return [];
-    }
-}
-
-async function getCourseNodeIds(courseIds: string[]): Promise<{ [nodeId: string]: string }> {
-    const nodeIdToCourseCodeMap: { [nodeId: string]: string } = {};
-    for (const courseId of courseIds) {
-        const headers = {
-            'Content-Type': 'application/json',
-            'X-Channel-Id': config.channelId,
-            'Authorization': config.apiAuthKey,
-            'x-authenticated-user-token': globalConfig.creatorUserToken
-        };
-
-        try {
-            const response = await axios.get(`${config.baseUrl}${routes.readContent}/${courseId}`, { headers });
-            const {status, contentType, code} = response.data.result.content;
-            if(status !== 'Live' || contentType !== 'Course' ||!code) {
-                console.log(`Invalid course ${courseId}: wrong status or content type or missing required fields`);
-                continue;
-            }
-            nodeIdToCourseCodeMap[courseId] = code;
-        } catch (error) {
-            console.error(`Error searching for course ${courseId}:`, error);
-        }
-    }
-    return nodeIdToCourseCodeMap;
 }
 
 async function processEnrollments() {
