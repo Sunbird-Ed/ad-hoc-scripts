@@ -1,10 +1,10 @@
 import fs from 'fs';
-import { getUserId } from './services/authService';
 import parseCsv from "../services/csv";
 import { createLearnerProfile, getBatchList, publishContent, searchCourse, updateLearnerProfile } from './services/courseService';
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
+import { searchContent } from '../services/contentService';
 
 interface CourseMapping {
     [key: string]: Map<string, string>;
@@ -14,33 +14,85 @@ interface BatchMapping {
     [key: string]: { [nodeId: string]: string | null };
 }
 
+interface NodeIdToCodeMapping {
+    [nodeId: string]: string;
+}
+
 interface ProcessingResult {
-    originalRow: string[];
-    status: 'Success' | 'Failure';
-    errorMessage: string;
+    userId: string;
+    learnerProfileCode: string;
+    status: 'Success' | 'Failure' | 'Skipped';
+    reason: string;
+}
+
+function parseLearnerProfileCodes(code: string): string[] {
+    // Remove any quotes and split by comma
+    return code.replace(/"/g, '').split(',').map(c => c.trim()).filter(c => c);
 }
 
 async function processLearnerProfiles() {
     await getAuthToken()
-    const rows = await parseCsv(courseConfig.learnerCoursePath);
-    const dataRows = rows.slice(1);
-    const headerRow = [...rows[0], 'status', 'errorMessage'];
+    
+    // Read learner-course mapping
+    const learnerCourseRows = await parseCsv(courseConfig.learnerCoursePath);
+    const headerRow = learnerCourseRows[0].concat(['status', 'reason']);
+    const learnerCourseData = learnerCourseRows.slice(1);
+    
     let currentMapping: CourseMapping = {};
     let batchMapping: BatchMapping = {};
-    const results: ProcessingResult[] = [];
+    let nodeIdToCodeMapping: NodeIdToCodeMapping = {};
+    const results: any[] = [];
+    const createdProfiles = new Set<string>();
 
-    for (const record of dataRows) {
+    // Get all unique learner profile codes and their associated courses
+    const learnerProfileCourses = new Map<string, Set<string>>();
+    for (const record of learnerCourseData) {
         const learnerProfileCode = record[0];
+        if (!learnerProfileCourses.has(learnerProfileCode)) {
+            learnerProfileCourses.set(learnerProfileCode, new Set());
+        }
+        const courseCodes = parseLearnerProfileCodes(record[2]);
+        // Add only unique course codes
+        courseCodes.forEach(code => {
+            const existingCourses = learnerProfileCourses.get(learnerProfileCode);
+            if (existingCourses) {
+                if (!existingCourses.has(code)) {
+                    existingCourses.add(code);
+                    console.log(`  Added unique course ${code} to learner profile ${learnerProfileCode}`);
+                } else {
+                    console.log(`  Skipped duplicate course ${code} for learner profile ${learnerProfileCode}`);
+                }
+            }
+        });
+    }
+
+    // Process each learner profile with its unique courses
+    for (const [learnerProfileCode, courseCodes] of learnerProfileCourses) {
         console.log(`Processing learner profile: ${learnerProfileCode}`);
+        console.log(`  Unique courses: ${Array.from(courseCodes).join(', ')}`);
 
         try {
+            // Check if learner profile already exists
+            const { exists } = await searchContent(learnerProfileCode);
+            if (exists) {
+                console.log(`  Learner profile ${learnerProfileCode} already exists, skipping...`);
+                // Add a result row for each course in the original data
+                const profileRows = learnerCourseData.filter(row => row[0] === learnerProfileCode);
+                for (const row of profileRows) {
+                    results.push([
+                        ...row,
+                        'Skipped',
+                        `Content with the code ${learnerProfileCode} already exists`
+                    ]);
+                }
+                continue;
+            }
+
             // Initialize mappings for this learner
             currentMapping[learnerProfileCode] = new Map();
             batchMapping[learnerProfileCode] = {};
 
-            const courseCodes = record[2].split(',').map((code: string) => code.trim());
-
-            // Process each course code
+            // Process each unique course code for this learner profile
             for (const courseCode of courseCodes) {
                 try {
                     console.log(`  Searching for course code: ${courseCode}`);
@@ -49,13 +101,8 @@ async function processLearnerProfiles() {
                         throw new Error(`Course not found for code: ${courseCode}`);
                     }
                     currentMapping[learnerProfileCode].set(nodeId, name);
-
-                    const batchId = await getBatchList(nodeId);
-                    if (!batchId) {
-                        throw new Error(`No batch found for course: ${nodeId}`);
-                    }
-                    batchMapping[learnerProfileCode][nodeId] = batchId;
-                    console.log(`Found batch ID ${batchId} for course ${nodeId}`);
+                    // Save the nodeId to courseCode mapping
+                    nodeIdToCodeMapping[nodeId] = courseCode;
                 } catch (courseError: any) {
                     throw new Error(`Failed processing course ${courseCode}: ${courseError.message}`);
                 }
@@ -63,19 +110,29 @@ async function processLearnerProfiles() {
 
             const nodeIdsStringArray = Array.from(currentMapping[learnerProfileCode].keys()).map(String);
 
+            // Get the learner profile data
+            const learnerProfileRow = learnerCourseData.find(row => row[0] === learnerProfileCode);
+            if (!learnerProfileRow) {
+                throw new Error(`No courses found for learner profile: ${learnerProfileCode}`);
+            }
+
             // Create and update learner profile
-            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, record);
-            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], record);
+            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, learnerProfileRow);
+            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], learnerProfileRow);
             await publishContent(learnerProfileIdentifier);
 
             console.log(`Successfully published learner profile for ${learnerProfileCode}`);
+            createdProfiles.add(learnerProfileCode);
 
-            // Record successful processing
-            results.push({
-                originalRow: record,
-                status: 'Success',
-                errorMessage: 'none'
-            });
+            // Add a result row for each course in the original data
+            const profileRows = learnerCourseData.filter(row => row[0] === learnerProfileCode);
+            for (const row of profileRows) {
+                results.push([
+                    ...row,
+                    'Success',
+                    'none'
+                ]);
+            }
 
         } catch (error: any) {
             let errorMessage;
@@ -84,12 +141,17 @@ async function processLearnerProfiles() {
             } else {
                 errorMessage = error?.message || 'Failed to create learner profile';
             }
-            // Record failed processing with error message
-            results.push({
-                originalRow: record,
-                status: 'Failure',
-                errorMessage: errorMessage
-            });
+
+            // Add a result row for each course in the original data
+            const profileRows = learnerCourseData.filter(row => row[0] === learnerProfileCode);
+            for (const row of profileRows) {
+                results.push([
+                    ...row,
+                    'Failure',
+                    errorMessage
+                ]);
+            }
+            
             console.error(`Error processing learner profile ${learnerProfileCode}:`, errorMessage);
 
             // Write intermediate results to CSV after each failure
@@ -132,7 +194,7 @@ async function processLearnerProfiles() {
     console.log('You can now run: npm run start:enroll');
 }
 
-function writeResultsToCSV(headerRow: string[], results: ProcessingResult[]) {
+function writeResultsToCSV(headerRow: string[], results: any[]) {
     const resultsDir = path.join(__dirname, '..', 'reports');
     if (!fs.existsSync(resultsDir)) {
         fs.mkdirSync(resultsDir);
@@ -140,9 +202,8 @@ function writeResultsToCSV(headerRow: string[], results: ProcessingResult[]) {
     const reportPath = path.join(resultsDir, 'learner-profile-status.csv');
 
     // Convert rows to CSV format with proper escaping
-    const csvRows = results.map(result => {
-        const row = [...result.originalRow, result.status, result.errorMessage];
-        return row.map(field => {
+    const csvRows = results.map((row: string[]) => {
+        return row.map((field: string) => {
             // If field contains comma or quotes, wrap it in quotes and escape existing quotes
             if (field.includes(',') || field.includes('"')) {
                 return `"${field.replace(/"/g, '""')}"`;

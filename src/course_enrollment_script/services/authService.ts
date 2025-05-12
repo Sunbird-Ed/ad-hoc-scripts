@@ -1,8 +1,6 @@
 import axios from "axios";
 import { config } from "../config/config";
 import { routes } from "../config/routes";
-import parseCsv from "../../services/csv";
-import { courseConfig } from "../config/courseConfig";
 
 function extractUserIdFromToken(token: string): string {
     try {
@@ -21,31 +19,7 @@ function extractUserIdFromToken(token: string): string {
     }
 }
 
-async function getEmailFromCsv(learnerCode: string): Promise<string | null> {
-    try {
-        const rows = await parseCsv(courseConfig.userLearnerPath);
-        const dataRows = rows.slice(1);
-        for (const record of dataRows) {
-            const email = record[0];
-            const csvLearnerCode = record[1];
-
-            if (csvLearnerCode === learnerCode) {
-                return email;
-            }
-        }
-        return null;
-    } catch (error) {
-        console.error('Error reading CSV:');
-        throw error;
-    }
-}
-
-export async function getUserId(learnerCode: string): Promise<{ accessToken: string, userId: string }> {
-    const email = await getEmailFromCsv(learnerCode);
-    if (!email) {
-        throw new Error(`No email found for learner code: ${learnerCode}`);
-    }
-
+export async function getUserId(userId: string): Promise<{ accessToken: string, userId: string }> {
     const headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': config.apiAuthKey
@@ -55,7 +29,7 @@ export async function getUserId(learnerCode: string): Promise<{ accessToken: str
         'client_id': config.clientId,
         'client_secret': config.clientSecret,
         'grant_type': config.grant_type,
-        'username': email // Using email from CSV instead of config
+        'username': userId
     });
 
     try {

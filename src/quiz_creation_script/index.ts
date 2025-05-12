@@ -6,6 +6,7 @@ import { createQuestion } from "./services/questionService";
 import { assessmentConfig, assessmentDefaultValues } from './config/quizConfigs';
 import { QuestionMapping, QuestionScoreMapping } from './types';
 import { getAuthToken } from '../services/authService';
+import { searchContent } from '../services/contentService';
 
 let questionNodeMap: QuestionMapping = {};
 let questionScoreMap: QuestionScoreMapping = {};
@@ -38,10 +39,23 @@ async function processQuestionCsv() {
             try {
                 if (row.length >= 3) {
                     const code = row[0];
+
+                    const { exists, question = false, identifier, score } = await searchContent(code, true);
+                    if (exists) {
+                        if(question && identifier){
+                            questionNodeMap[`${code}`] = identifier;
+                            questionScoreMap[`${code}`] = score;
+                            statusReport.push(row.concat(['Skipped', `Question with code ${code} already exists`]));
+                            continue;
+                        }
+                        statusReport.push(row.concat(['Skipped', `Content with code ${code} already exists`]));
+                        continue;
+                    }
+
                     const title = row[1];
                     const maxScore = parseInt(row[row.length - 1], 10);
 
-                    questionScoreMap[code] = maxScore;
+                    questionScoreMap[`${code}`]= maxScore;
 
                     const optionPairs = [];
                     for (let i = 2; i < row.length - 1; i += 2) {
@@ -54,7 +68,7 @@ async function processQuestionCsv() {
                     }
 
                     const nodeId = await createQuestion(code, title, optionPairs, maxScore);
-                    questionNodeMap[code] = nodeId;
+                    questionNodeMap[`${code}`]= nodeId;
                     console.log(`Mapped question code ${code} to node_id ${nodeId} with score ${maxScore}`);
                     statusReport.push(row.concat(['Success', 'none']));
                 }
@@ -98,6 +112,7 @@ async function processContentCsv() {
                 const code = row[0];
                 const name = row[1];
                 const maxAttempts = parseInt(row[2], 10);
+                const language = row[3];
                 const contentType = row[4];
                 const questionCodes = row[5].split(',').map(code => code.trim());
 
@@ -113,13 +128,30 @@ async function processContentCsv() {
                         contentType,
                         questionsField,
                         'Failed',
-                        `${missingQuestions.join(', ')} does not exist.`
+                        `question with code ${missingQuestions[0]} does not exist.`
                     ]);
                     continue;
                 }
                 try {
+                    
+                    const { exists } = await searchContent(code, false, true);
+                    if (exists) {
+                        const questionCode = row[5].includes(',') ? `"${row[5]}"` : row[5];
+                        statusReport.push([
+                            code,
+                            name,
+                            maxAttempts.toString(),
+                            row[3],
+                            contentType,
+                            questionCode,
+                            'Skipped',
+                            `Content with code ${code} already exists`
+                        ]);
+                        continue;
+                    }
+                     
                     // Create content and get identifier and versionKey
-                    const { identifier, versionKey } = await createAssessment(code, name, maxAttempts, contentType);
+                    const { identifier, versionKey } = await createAssessment(code, name, maxAttempts, contentType, language);
 
                     // Ensure questions field is properly quoted if it contains commas
                     const questionsField = row[5].includes(',') ? `"${row[5]}"` : row[5];
@@ -256,6 +288,9 @@ async function processContentCsv() {
                     await publishContent(identifier);
                     statusReport[statusReport.length - 1][statusReport[0].length - 2] = 'Live';
                     console.log(`Quiz ${code} published successfully`);
+                    
+                    // Add delay after publishing to prevent rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 } catch (error: any) {
                     const currentStatus = statusReport[statusReport.length - 1];
                     currentStatus[currentStatus.length - 1] = error.message;
