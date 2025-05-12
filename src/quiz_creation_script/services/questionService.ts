@@ -65,7 +65,10 @@ export async function createQuestion(
     optionPairs: { text: string; isCorrect: boolean }[],
     maxScore: number
 ): Promise<string> {
-    const options: Option[] = optionPairs.map((pair, index) => ({
+    // Filter out any empty options
+    const validOptions = optionPairs.filter(pair => pair.text && pair.text.trim() !== '');
+
+    const options: Option[] = validOptions.map((pair, index) => ({
         text: `<p>${pair.text}</p>\n`,
         image: "",
         audio: "",
