@@ -20,7 +20,7 @@ interface ContentRequestBody {
             creator: string;
             contentType: string;
             primaryCategory?: string;
-            langauge: string[];
+            language: string[];
         }
     }
 }
@@ -61,7 +61,7 @@ export async function createAssessment(
         name,
         maxAttempts,
         description: "Enter description for Assessment",
-        langauge: [language],
+        language: [language],
         createdBy: assessmentConfig.createdBy,
         organisation: assessmentConfig.organisation,
         createdFor: [assessmentConfig.channelId],

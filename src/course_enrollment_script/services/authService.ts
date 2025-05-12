@@ -29,7 +29,7 @@ export async function getUserId(userId: string): Promise<{ accessToken: string, 
         'client_id': config.clientId,
         'client_secret': config.clientSecret,
         'grant_type': config.grant_type,
-        'username': userId // Using email from CSV instead of config
+        'username': userId
     });
 
     try {
