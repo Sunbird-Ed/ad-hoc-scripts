@@ -7,6 +7,7 @@ import { assessmentConfig, assessmentDefaultValues } from './config/quizConfigs'
 import { QuestionMapping, QuestionScoreMapping } from './types';
 import { getAuthToken } from '../services/authService';
 import { searchContent } from '../services/contentService';
+import globalConfig from '../globalConfigs';
 
 let questionNodeMap: QuestionMapping = {};
 let questionScoreMap: QuestionScoreMapping = {};
@@ -290,7 +291,7 @@ async function processContentCsv() {
                     console.log(`Quiz ${code} published successfully`);
                     
                     // Add delay after publishing to prevent rate limiting
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, globalConfig.waitInterval));
                 } catch (error: any) {
                     const currentStatus = statusReport[statusReport.length - 1];
                     currentStatus[currentStatus.length - 1] = error.message;

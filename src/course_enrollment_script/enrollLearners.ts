@@ -5,6 +5,7 @@ import { enrollInCourse, getBatchList, getCourseNodeIds, getProfileCourses, sear
 import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
+import globalConfig from '../globalConfigs';
 interface EnrollmentResult {
     userId: string;
     learnerProfile: string;
@@ -177,7 +178,7 @@ async function processEnrollments() {
         writeResultsToCSV(headerRow, results);
 
         // Add delay between users
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, globalConfig.waitInterval));
     }
 
     console.log('Finished processing all enrollments');

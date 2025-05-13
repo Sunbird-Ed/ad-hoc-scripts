@@ -5,6 +5,7 @@ import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
 import { searchContent } from '../services/contentService';
+import globalConfig from '../globalConfigs';
 
 interface CourseMapping {
     [key: string]: Map<string, string>;
@@ -158,7 +159,7 @@ async function processLearnerProfiles() {
             writeResultsToCSV(headerRow, results);
         }
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, globalConfig.waitInterval));
     }
 
     writeResultsToCSV(headerRow, results);

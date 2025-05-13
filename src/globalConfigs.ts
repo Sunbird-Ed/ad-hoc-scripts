@@ -16,6 +16,7 @@ const globalConfig = {
     framework: process.env.FRAMEWORK || 'FMPS',
     mimeType: process.env.MIME_TYPE || 'application/vnd.ekstep.ecml-archive',
     creator: process.env.CREATOR || 'Content Creator',
+    waitInterval: Number(process.env.WAIT_INTERVAL) || 5000
 }
 
 export default globalConfig;

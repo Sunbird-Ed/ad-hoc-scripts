@@ -1,0 +1,4 @@
+code,quiz_name,max_attempts,language,quiz_type,questions
+QZ101,Practice Quiz 01,3,English,practice,"QZ 291"
+QZ102,Practice Quiz 02,4,English,practice,"QZ 292"
+QA101,Final Quiz 01,4,English,assess,"QZ 291,QZ 292"
