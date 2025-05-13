@@ -71,7 +71,7 @@ export async function createAssessment(
         contentType: contentType === 'assess' ? 'SelfAssess' : 'Resource'
     };
 
-    if (contentType === 'practise') {
+    if (contentType !== 'assess') {
         contentBody.primaryCategory = 'Practise Assess';
     }
 

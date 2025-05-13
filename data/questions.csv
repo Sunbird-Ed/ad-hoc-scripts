@@ -1,0 +1,4 @@
+code,question_text,option_1,option_1_is_correct,option_2,option_2_is_correct,option_3,option_3_is_correct,option_4,option_4_is_correct,option_5,option_5_is_correct,score
+QZ 290,What are the cities of Australia?,Canberra,TRUE,Sydney,TRUE,Naples,FALSE,Turin,FALSE,Venice,FALSE,5
+QZ 291,What is the capital of Brazil?,Brasilia,TRUE,Milan,FALSE,Naples,FALSE,Turin,FALSE,,,3
+QZ 292,What is the capital of India?,New Delhi,TRUE,Milan,FALSE,Naples,FALSE,Turin,FALSE,Venice,FALSE,3
