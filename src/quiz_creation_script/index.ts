@@ -25,7 +25,16 @@ async function saveQuestionMapping() {
 async function processQuestionCsv() {
     try {
         const rows = await parseCsv(assessmentConfig.questionCsvPath);
+        const headers = rows[0];
         const dataRows = rows.slice(1);
+
+        // Convert each row into an object using the headers
+        const parsedRows = dataRows.map(row =>
+            headers.reduce((acc, header, i) => {
+                acc[header] = row[i];
+                return acc;
+            }, {} as Record<string, string>)
+        );
 
         // Create results directory if it doesn't exist
         const resultsDir = path.join(__dirname, '..', 'reports');
@@ -36,46 +45,46 @@ async function processQuestionCsv() {
         // Prepare status report data
         const statusReport = [rows[0].concat(['status', 'reason'])]; // Add headers
 
-        for (const row of dataRows) {
+        for (const row of parsedRows) {
             try {
-                if (row.length >= 3) {
-                    const code = row[0];
-
+                if (Object.keys(row).length >= 3) {
+                    const code = row.code;
                     const { exists, question = false, identifier, score } = await searchContent(code, true);
                     if (exists) {
-                        if(question && identifier){
+                        if (question && identifier) {
                             questionNodeMap[`${code}`] = identifier;
                             questionScoreMap[`${code}`] = score;
-                            statusReport.push(row.concat(['Skipped', `Question with code ${code} already exists`]));
+                            statusReport.push(headers.map(h => row[h]).concat(['Skipped', `Question with code ${code} already exists`]));
                             continue;
                         }
-                        statusReport.push(row.concat(['Skipped', `Content with code ${code} already exists`]));
+                        statusReport.push(headers.map(h => row[h]).concat(['Skipped', `Content with code ${code} already exists`]));
                         continue;
                     }
 
-                    const title = row[1];
-                    const maxScore = parseInt(row[row.length - 1], 10);
+                    const title = row.question_text;
+                    const maxScore = parseInt(row.score, 10);
 
-                    questionScoreMap[`${code}`]= maxScore;
+                    questionScoreMap[`${code}`] = maxScore;
 
                     const optionPairs = [];
-                    for (let i = 2; i < row.length - 1; i += 2) {
-                        if (i + 1 < row.length - 1) {
+                    const rowKeys = Object.keys(row);
+                    for (let i = 2; i < rowKeys.length - 1; i += 2) {
+                        if (i + 1 < rowKeys.length - 1) {
                             optionPairs.push({
-                                text: row[i],
-                                isCorrect: row[i + 1].toLowerCase() === 'true'
+                                text: row[rowKeys[i]],
+                                isCorrect: String(row[rowKeys[i + 1]]).toLowerCase() === 'true'
                             });
                         }
                     }
 
                     const nodeId = await createQuestion(code, title, optionPairs, maxScore);
-                    questionNodeMap[`${code}`]= nodeId;
+                    questionNodeMap[`${code}`] = nodeId;
                     console.log(`Mapped question code ${code} to node_id ${nodeId} with score ${maxScore}`);
-                    statusReport.push(row.concat(['Success', 'none']));
+                    statusReport.push(headers.map(h => row[h]).concat(['Success', 'none']));
                 }
             } catch (error: any) {
-                console.error(`Error processing question ${row[0]}:`, error);
-                statusReport.push(row.concat(['Failure', error.message]));
+                console.error(`Error processing question ${row.code}:`, error);
+                statusReport.push(headers.map(h => row[h]).concat(['Failure', error.message]));
             }
         }
 
@@ -105,66 +114,76 @@ async function processContentCsv() {
             fs.mkdirSync(resultsDir);
         }
         const rows = await parseCsv(assessmentConfig.csvPath);
+        const headers = rows[0];
         const dataRows = rows.slice(1);
 
-        const statusReport = [rows[0].concat(['status', 'error_message'])];
-        for (const row of dataRows) {
-            if (row.length >= 6) {
-                const code = row[0];
-                const name = row[1];
-                const maxAttempts = parseInt(row[2], 10);
-                const language = row[3];
-                const contentType = row[4];
-                const questionCodes = row[5].split(',').map(code => code.trim());
+        // Convert each row into an object using the headers
+        const parsedRows = dataRows.map(row =>
+            headers.reduce((acc, header, i) => {
+                acc[header] = row[i];
+                return acc;
+            }, {} as Record<string, string>)
+        );
+
+        const statusReport = [headers.concat(['status', 'error_message'])];
+        for (const row of parsedRows) {
+            if (Object.keys(row).length >= 6) {
+                const code = row.code;
+                const name = row.quiz_name;
+                const maxAttempts = parseInt(row.max_attempts, 10);
+                const language = row.language;
+                const contentType = row.quiz_type;
+                const questionCodes = row.questions.split(',').map(code => code.trim());
 
                 const missingQuestions = questionCodes.filter(qCode => !questionNodeMap[qCode]);
                 if (missingQuestions.length > 0) {
-                    // Ensure questions field is properly quoted if it contains commas
-                    const questionsField = row[5].includes(',') ? `"${row[5]}"` : row[5];
+                    const questionsField = row.questions.includes(',') ? `"${row.questions}"` : row.questions;
+                    const baseRow = headers.map(h => {
+                        if (h === 'questions') return questionsField;
+                        return row[h] ?? '';
+                    });
+
                     statusReport.push([
-                        code,
-                        name,
-                        maxAttempts.toString(),
-                        row[3],
-                        contentType,
-                        questionsField,
+                        ...baseRow,
                         'Failed',
                         `question with code ${missingQuestions[0]} does not exist.`
                     ]);
+
                     continue;
                 }
+
                 try {
-                    
                     const { exists } = await searchContent(code, false, true);
                     if (exists) {
-                        const questionCode = row[5].includes(',') ? `"${row[5]}"` : row[5];
+                        const questionCode = row.questions.includes(',') ? `"${row.questions}"` : row.questions;
+
+                        const baseRow = headers.map(h => {
+                            if (h === 'questions') return questionCode;
+                            return row[h] ?? '';
+                        });
+    
                         statusReport.push([
-                            code,
-                            name,
-                            maxAttempts.toString(),
-                            row[3],
-                            contentType,
-                            questionCode,
+                            ...baseRow,
                             'Skipped',
                             `Content with code ${code} already exists`
                         ]);
                         continue;
                     }
-                     
+
                     // Create content and get identifier and versionKey
                     const { identifier, versionKey } = await createAssessment(code, name, maxAttempts, contentType, language);
 
                     // Ensure questions field is properly quoted if it contains commas
-                    const questionsField = row[5].includes(',') ? `"${row[5]}"` : row[5];
+                    const questionsField = row.questions.includes(',') ? `"${row.questions}"` : row.questions;
+                    const baseRow = headers.map(h => {
+                        if (h === 'questions') return questionsField;
+                        return row[h] ?? '';
+                    });
+
                     statusReport.push([
-                        code,
-                        name,
-                        maxAttempts.toString(),
-                        row[3],
-                        contentType,
-                        questionsField,
+                        ...baseRow,
                         'Draft',
-                        'none'
+                        `none`
                     ]);
 
                     // Map question codes to their node IDs and calculate total score
@@ -289,7 +308,7 @@ async function processContentCsv() {
                     await publishContent(identifier);
                     statusReport[statusReport.length - 1][statusReport[0].length - 2] = 'Live';
                     console.log(`Quiz ${code} published successfully`);
-                    
+
                     // Add delay after publishing to prevent rate limiting
                     await new Promise(resolve => setTimeout(resolve, globalConfig.waitInterval));
                 } catch (error: any) {
@@ -314,20 +333,29 @@ async function processContentCsv() {
 
 async function generateQuizQuestionStatus() {
     try {
-        // Create results directory if it doesn't exist
         const resultsDir = path.join(__dirname, '..', 'reports');
         if (!fs.existsSync(resultsDir)) {
             fs.mkdirSync(resultsDir);
         }
 
-        // Get all content data
         const contentRows = await parseCsv(assessmentConfig.csvPath);
+        const headers = contentRows[0];
+        const dataRows = contentRows.slice(1);
+
+        // Convert each row into an object using the headers
+        const parsedRows = dataRows.map(row =>
+            headers.reduce((acc, header, i) => {
+                acc[header] = row[i];
+                return acc;
+            }, {} as Record<string, string>)
+        );
+
         const quizQuestionStatus = [['quiz_code', 'question_code', 'question_creation_status', 'question_attachment_status', 'error_message']];
 
-        for (const row of contentRows.slice(1)) { // Skip header
-            if (row.length >= 6) {
-                const code = row[0];
-                const questionCodes = row[5].split(',').map(code => code.trim());
+        for (const row of parsedRows) {
+            if (Object.keys(row).length >= 6) {
+                const code = row.code;
+                const questionCodes = row.questions.split(',').map(code => code.trim());
 
                 for (const qCode of questionCodes) {
                     const questionExists = questionNodeMap[qCode] !== undefined;
@@ -338,7 +366,7 @@ async function generateQuizQuestionStatus() {
                         code,
                         qCode,
                         status,
-                        status, // Attachment status is same as creation status
+                        status,
                         errorMessage
                     ]);
                 }
