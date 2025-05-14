@@ -57,7 +57,7 @@ export async function searchCourse(courseCode: string): Promise<{ identifier: st
     }
 }
 
-export async function createLearnerProfile(learnerCode: string, nodeIds: string[], record: string[]) {
+export async function createLearnerProfile(learnerCode: string, nodeIds: string[], record: Record<string,any>) {
     try {
         const children = nodeIds.map((nodeId, index) => ({
             identifier: nodeId,
@@ -76,7 +76,7 @@ export async function createLearnerProfile(learnerCode: string, nodeIds: string[
             data: {
                 request: {
                     collection: {
-                        name: record[1], // Using 2nd row from CSV for name
+                        name: record['learner_profile'], // Using 2nd row from CSV for name
                         code: learnerCode,
                         description: "Enter description for Learner Profile",
                         createdBy: courseConfig.createdBy,
@@ -85,7 +85,7 @@ export async function createLearnerProfile(learnerCode: string, nodeIds: string[
                         framework: courseConfig.framework,
                         mimeType: "application/vnd.ekstep.content-collection",
                         creator: courseConfig.creator,
-                        expiry_date: record[3], // Using 4th row from CSV for expiry_date
+                        expiry_date: record['expiry_date'], // Using 4th row from CSV for expiry_date
                         primaryCategory: "Learner Profile",
                         children: children
                     }
@@ -105,7 +105,7 @@ export async function updateLearnerProfile(
     learnerCode: string,
     learnerId: string,
     courseMapping: Map<any, string>,
-    record: string[]
+    record: Record<string,any>
 ) {
     try {
         const children: string[] = [];
@@ -132,7 +132,7 @@ export async function updateLearnerProfile(
                             root: true,
                             objectType: "Content",
                             metadata: {
-                                name: record[1],
+                                name: record["learner_profile"],
                                 code: learnerCode,
                                 description: "Learner Profile for course enrollment",
                                 createdBy: courseConfig.createdBy,
@@ -141,7 +141,7 @@ export async function updateLearnerProfile(
                                 framework: courseConfig.framework,
                                 mimeType: "application/vnd.ekstep.content-collection",
                                 creator: courseConfig.creator,
-                                expiry_date: record[3],
+                                expiry_date: record["expiry_date"],
                                 primaryCategory: "Learner Profile"
                             },
                             isNew: false

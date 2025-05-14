@@ -32,13 +32,22 @@ function parseLearnerProfileCodes(code: string): string[] {
 }
 
 async function processLearnerProfiles() {
-    await getAuthToken()
-    
+    await getAuthToken();
+
     // Read learner-course mapping
     const learnerCourseRows = await parseCsv(courseConfig.learnerCoursePath);
-    const headerRow = learnerCourseRows[0].concat(['status', 'reason']);
-    const learnerCourseData = learnerCourseRows.slice(1);
-    
+    const headerRow = learnerCourseRows[0];
+    const updatedHeaderRow = [...learnerCourseRows[0], 'status', 'reason'];
+    const dataRows = learnerCourseRows.slice(1);
+
+    const learnerCourseData = dataRows.map(row =>
+        headerRow.reduce((acc, header, i) => {
+            acc[header] = row[i];
+            return acc;
+        }, {} as Record<string, string>)
+    );
+
+
     let currentMapping: CourseMapping = {};
     let batchMapping: BatchMapping = {};
     let nodeIdToCodeMapping: NodeIdToCodeMapping = {};
@@ -48,11 +57,11 @@ async function processLearnerProfiles() {
     // Get all unique learner profile codes and their associated courses
     const learnerProfileCourses = new Map<string, Set<string>>();
     for (const record of learnerCourseData) {
-        const learnerProfileCode = record[0];
+        const learnerProfileCode = record['learner_profile_code'];
         if (!learnerProfileCourses.has(learnerProfileCode)) {
             learnerProfileCourses.set(learnerProfileCode, new Set());
         }
-        const courseCodes = parseLearnerProfileCodes(record[2]);
+        const courseCodes = parseLearnerProfileCodes(record['course_code']);
         // Add only unique course codes
         courseCodes.forEach(code => {
             const existingCourses = learnerProfileCourses.get(learnerProfileCode);
@@ -78,10 +87,10 @@ async function processLearnerProfiles() {
             if (exists) {
                 console.log(`  Learner profile ${learnerProfileCode} already exists, skipping...`);
                 // Add a result row for each course in the original data
-                const profileRows = learnerCourseData.filter(row => row[0] === learnerProfileCode);
+                const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
                 for (const row of profileRows) {
                     results.push([
-                        ...row,
+                        ...Object.values(row),
                         'Skipped',
                         `Content with the code ${learnerProfileCode} already exists`
                     ]);
@@ -112,24 +121,24 @@ async function processLearnerProfiles() {
             const nodeIdsStringArray = Array.from(currentMapping[learnerProfileCode].keys()).map(String);
 
             // Get the learner profile data
-            const learnerProfileRow = learnerCourseData.find(row => row[0] === learnerProfileCode);
+            const learnerProfileRow = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
             if (!learnerProfileRow) {
                 throw new Error(`No courses found for learner profile: ${learnerProfileCode}`);
             }
 
             // Create and update learner profile
-            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, learnerProfileRow);
-            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], learnerProfileRow);
+            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, learnerProfileRow[0]);
+            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], learnerProfileRow[0]);
             await publishContent(learnerProfileIdentifier);
 
             console.log(`Successfully published learner profile for ${learnerProfileCode}`);
             createdProfiles.add(learnerProfileCode);
 
             // Add a result row for each course in the original data
-            const profileRows = learnerCourseData.filter(row => row[0] === learnerProfileCode);
+            const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
             for (const row of profileRows) {
                 results.push([
-                    ...row,
+                    ...Object.values(row),
                     'Success',
                     'none'
                 ]);
@@ -144,25 +153,26 @@ async function processLearnerProfiles() {
             }
 
             // Add a result row for each course in the original data
-            const profileRows = learnerCourseData.filter(row => row[0] === learnerProfileCode);
+            const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
             for (const row of profileRows) {
                 results.push([
-                    ...row,
+                    ...Object.values(row),
                     'Failure',
                     errorMessage
                 ]);
             }
-            
+
             console.error(`Error processing learner profile ${learnerProfileCode}:`, errorMessage);
 
             // Write intermediate results to CSV after each failure
-            writeResultsToCSV(headerRow, results);
+            writeResultsToCSV(updatedHeaderRow, results);
         }
 
         await new Promise(resolve => setTimeout(resolve, globalConfig.waitInterval));
     }
 
-    writeResultsToCSV(headerRow, results);
+    // Update writeResultsToCSV calls to include headerRow
+    writeResultsToCSV(updatedHeaderRow, results);
 
     // Convert mappings to string format and save to .env file
     const courseMappingStr = JSON.stringify(Object.fromEntries(
@@ -218,4 +228,4 @@ function writeResultsToCSV(headerRow: string[], results: any[]) {
 }
 
 // Run the script
-processLearnerProfiles().catch(console.error); 
+processLearnerProfiles().catch(console.error);
