@@ -8,6 +8,7 @@ import { QuestionMapping, QuestionScoreMapping } from './types';
 import { getAuthToken } from '../services/authService';
 import { searchContent } from '../services/contentService';
 import globalConfig from '../globalConfigs';
+import _ from 'lodash';
 
 let questionNodeMap: QuestionMapping = {};
 let questionScoreMap: QuestionScoreMapping = {};
@@ -49,6 +50,9 @@ async function processQuestionCsv() {
             try {
                 if (Object.keys(row).length >= 3) {
                     const code = row.code;
+                    if (!code) {
+                        throw new Error('Question Code input is missing');
+                    }
                     const { exists, question = false, identifier, score } = await searchContent(code, true);
                     if (exists) {
                         if (question && identifier) {
@@ -62,7 +66,13 @@ async function processQuestionCsv() {
                     }
 
                     const title = row.question_text;
+                    if (!title) {
+                        throw new Error('Question name input is missing');
+                    }
                     const maxScore = parseInt(row.score, 10);
+                    if (!maxScore || isNaN(maxScore)) {
+                        throw new Error('Question Max score input is invalid');
+                    }
 
                     questionScoreMap[`${code}`] = maxScore;
 
@@ -135,11 +145,59 @@ async function processContentCsv() {
         for (const row of parsedRows) {
             if (Object.keys(row).length >= 6) {
                 const code = row.code;
+                const questionsField = row.questions.includes(',') ? `"${row.questions}"` : row.questions;
+                const baseRow = headers.map(h => {
+                    if (h === 'questions') return questionsField;
+                    return row[h] ?? '';
+                });
+                if (!code) {
+                    statusReport.push([
+                        ...baseRow,
+                        'Failed',
+                        `Quiz code input is missing`
+                    ]);
+                    continue
+                }
                 const name = row.quiz_name;
+                if (!name) {
+                    statusReport.push([
+                        ...baseRow,
+                        'Failed',
+                        `Quiz name is missing`
+                    ]);
+                    continue
+                }
                 const maxAttempts = parseInt(row.max_attempts, 10);
-                const language = row.language;
+                if (!maxAttempts || isNaN(maxAttempts)) {
+                    statusReport.push([
+                        ...baseRow,
+                        'Failed',
+                        `Quiz max attempts input is missing`
+                    ]);
+                    continue
+                }
+                const language = row.language || "English";
                 const contentType = row.quiz_type;
+                if (!contentType) {
+                    statusReport.push([
+                        ...baseRow,
+                        'Failed',
+                        `Quiz content type input is missing`
+                    ]);
+                    continue
+                }
                 const questionCodes = row.questions.split(',').map(code => code.trim());
+
+                console.log(questionCodes);
+                
+                if (_.isEmpty(_.compact(questionCodes))) {
+                    statusReport.push([
+                        ...baseRow,
+                        'Failed',
+                        `Question codes input are missing`
+                    ]);
+                    continue
+                }
 
                 const missingQuestions = questionCodes.filter(qCode => !questionNodeMap[qCode]);
                 if (missingQuestions.length > 0) {

@@ -6,6 +6,7 @@ import { courseConfig } from './config/courseConfig';
 import path from 'path';
 import { getAuthToken } from '../services/authService';
 import globalConfig from '../globalConfigs';
+import _ from 'lodash';
 interface EnrollmentResult {
     userId: string;
     learnerProfile: string;
@@ -37,7 +38,27 @@ async function processEnrollments() {
 
     for (const record of enrollData) {
         const email = record['email'];
+        if (!email) {
+            results.push({
+                userId: email,
+                learnerProfile: "none",
+                courseCode: 'none',
+                status: 'Failure',
+                reason: 'Username/Email input is missing'
+            });
+            continue;
+        }
         const learnerProfileCodes = parseLearnerProfileCodes(record['learner_profile_code']);
+        if (_.isEmpty(learnerProfileCodes)) {
+            results.push({
+                userId: email,
+                learnerProfile: "none",
+                courseCode: 'none',
+                status: 'Failure',
+                reason: 'Learner Profile code inpout is missing'
+            });
+            continue;
+        }
         console.log(`Processing enrollments for user: ${email} with profiles: ${learnerProfileCodes.join(', ')}`);
 
         try {
@@ -168,10 +189,9 @@ async function processEnrollments() {
             console.error(`Error processing enrollments for ${email}:`, errorMessage);
         }
 
-        writeResultsToCSV(updatedheaderRow, results);
-
         await new Promise(resolve => setTimeout(resolve, globalConfig.waitInterval));
     }
+    writeResultsToCSV(updatedheaderRow, results);
 
     console.log('Finished processing all enrollments');
     console.log(`Results have been saved to ${path.join(__dirname, '..', 'reports', 'enrollment-status.csv')}`);

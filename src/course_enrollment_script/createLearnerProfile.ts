@@ -6,6 +6,7 @@ import path from 'path';
 import { getAuthToken } from '../services/authService';
 import { searchContent } from '../services/contentService';
 import globalConfig from '../globalConfigs';
+import _ from 'lodash';
 
 interface CourseMapping {
     [key: string]: Map<string, string>;
@@ -58,10 +59,26 @@ async function processLearnerProfiles() {
     const learnerProfileCourses = new Map<string, Set<string>>();
     for (const record of learnerCourseData) {
         const learnerProfileCode = record['learner_profile_code'];
+        if (!learnerProfileCode) {
+            results.push([
+                ...Object.values(record),
+                'Failure',
+                `Learner Profile code input is missing`
+            ]);
+            continue;
+        }
         if (!learnerProfileCourses.has(learnerProfileCode)) {
             learnerProfileCourses.set(learnerProfileCode, new Set());
         }
         const courseCodes = parseLearnerProfileCodes(record['course_code']);
+        if (_.isEmpty(courseCodes)) {
+            results.push([
+                ...Object.values(record),
+                'Failure',
+                `Course codes input is missing`
+            ]);
+            continue;
+        }
         // Add only unique course codes
         courseCodes.forEach(code => {
             const existingCourses = learnerProfileCourses.get(learnerProfileCode);
