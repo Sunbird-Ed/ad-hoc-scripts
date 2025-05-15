@@ -67,13 +67,19 @@ async function processQuestionCsv() {
                     questionScoreMap[`${code}`] = maxScore;
 
                     const optionPairs = [];
-                    const rowKeys = Object.keys(row);
-                    for (let i = 2; i < rowKeys.length - 1; i += 2) {
-                        if (i + 1 < rowKeys.length - 1) {
-                            optionPairs.push({
-                                text: row[rowKeys[i]],
-                                isCorrect: String(row[rowKeys[i + 1]]).toLowerCase() === 'true'
-                            });
+                    for (let i = 0; i < headers.length; i++) {
+                        const textKey = headers[i];
+                        const match = /^option_(\d+)$/.exec(textKey);
+                        if (match) {
+                            const number = match[1];
+                            const isCorrectKey = `option_${number}_is_correct`;
+
+                            if (headers.includes(isCorrectKey)) {
+                                optionPairs.push({
+                                    text: row[textKey],
+                                    isCorrect: String(row[isCorrectKey]).toLowerCase() === 'true'
+                                });
+                            }
                         }
                     }
 
@@ -161,7 +167,7 @@ async function processContentCsv() {
                             if (h === 'questions') return questionCode;
                             return row[h] ?? '';
                         });
-    
+
                         statusReport.push([
                             ...baseRow,
                             'Skipped',
@@ -399,7 +405,7 @@ async function main() {
 
         // Then process assessment
         console.log('Starting quiz processing...');
-        await processContentCsv();
+        // await processContentCsv();
     } catch (error) {
         console.error('Processing failed:', error);
         process.exit(1);
