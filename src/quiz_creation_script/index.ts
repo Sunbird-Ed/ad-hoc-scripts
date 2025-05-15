@@ -186,10 +186,7 @@ async function processContentCsv() {
                     ]);
                     continue
                 }
-                const questionCodes = row.questions.split(',').map(code => code.trim());
-
-                console.log(questionCodes);
-                
+                const questionCodes = row.questions.split(',').map(code => code.trim());                
                 if (_.isEmpty(_.compact(questionCodes))) {
                     statusReport.push([
                         ...baseRow,
