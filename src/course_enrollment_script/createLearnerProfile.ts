@@ -121,14 +121,14 @@ async function processLearnerProfiles() {
             const nodeIdsStringArray = Array.from(currentMapping[learnerProfileCode].keys()).map(String);
 
             // Get the learner profile data
-            const learnerProfileRow = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
+            const learnerProfileRow = learnerCourseData.find(row => row['learner_profile_code'] === learnerProfileCode);
             if (!learnerProfileRow) {
                 throw new Error(`No courses found for learner profile: ${learnerProfileCode}`);
             }
 
             // Create and update learner profile
-            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, learnerProfileRow[0]);
-            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], learnerProfileRow[0]);
+            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, learnerProfileRow);
+            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], learnerProfileRow);
             await publishContent(learnerProfileIdentifier);
 
             console.log(`Successfully published learner profile for ${learnerProfileCode}`);
