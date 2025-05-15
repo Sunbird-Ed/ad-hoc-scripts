@@ -405,7 +405,7 @@ async function main() {
 
         // Then process assessment
         console.log('Starting quiz processing...');
-        // await processContentCsv();
+        await processContentCsv();
     } catch (error) {
         console.error('Processing failed:', error);
         process.exit(1);
