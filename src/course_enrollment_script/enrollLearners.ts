@@ -55,7 +55,7 @@ async function processEnrollments() {
                 learnerProfile: "none",
                 courseCode: 'none',
                 status: 'Failure',
-                reason: 'Learner Profile code inpout is missing'
+                reason: 'Learner Profile code input is missing'
             });
             continue;
         }
