@@ -169,7 +169,7 @@ This file is used to define questions that will appear in quizzes. Each row repr
 | `option_X_is_correct` | `TRUE` if correct, `FALSE` otherwise               |
 
 Example row:
-`QZ001, What is the capital of France?, 5, Paris, TRUE, Lyon, FALSE, ...`
+`QZ001,What is the capital of France?,5,Paris,TRUE,Lyon,FALSE`
 
 ### Quiz Data CSV Columns
 
@@ -189,7 +189,7 @@ This file describes a quiz, including its name, type, language, and which questi
 | `max_attempts` | How many times a user can attempt the quiz           |
 
 Example row:
-`QUIZ001, Geography Quiz, en, practice, QZ001,QZ002,QZ003, 3`
+`QUIZ001,Geography Quiz,English,practice,"QZ001,QZ002,QZ003",3`
 
 ### Learner Profile Data CSV Columns
 
@@ -207,7 +207,7 @@ This file links learner profiles to specific courses and when access expires.
 | `expiry_date`          | Access end date in `YYYY-MM-DD` format (e.g., `2025-12-31`) |
 
 Example row:
-`LP001, Beginner, COURSE001, 2025-12-31`
+`LP001,Learner Profile 01,"course-01,course-02",2025-12-31`
 
 ### Course Enrollment Data CSV Columns
 
@@ -223,7 +223,7 @@ This file links user emails to specific learner profile codes for enrollment.
 | `learner_profile_code` | Learner profile codes used to enroll users in courses    |
 
 Example row:
-`user@example.com, LP001`
+`user@example.com,LP001`
 
 
 ## Status Reports
