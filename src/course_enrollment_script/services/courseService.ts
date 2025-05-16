@@ -29,7 +29,7 @@ export async function searchCourse(courseCode: string): Promise<{ identifier: st
                             "FlagReview"
                         ],
                         code: courseCode,
-                        createdBy: "927c2094-987f-4e8f-8bd5-8bf93e3d2e8a",
+                        createdBy: courseConfig.createdBy,
                         primaryCategory: [
                             "Course"
                         ],
@@ -57,7 +57,7 @@ export async function searchCourse(courseCode: string): Promise<{ identifier: st
     }
 }
 
-export async function createLearnerProfile(learnerCode: string, nodeIds: string[], record: Record<string,any>) {
+export async function createLearnerProfile(learnerCode: string, nodeIds: string[], record: Record<string, any>) {
     try {
         const children = nodeIds.map((nodeId, index) => ({
             identifier: nodeId,
@@ -94,7 +94,7 @@ export async function createLearnerProfile(learnerCode: string, nodeIds: string[
         });
 
         console.log(`Created learner profile for ${learnerCode}:`, JSON.stringify(response.data));
-        return response.data.result.identifier;
+        return { learnerProfileIdentifier: response.data.result.identifier, children: children };
     } catch (error) {
         console.error(`Error creating learner profile for ${learnerCode}:`);
         throw error;
@@ -105,7 +105,8 @@ export async function updateLearnerProfile(
     learnerCode: string,
     learnerId: string,
     courseMapping: Map<any, string>,
-    record: Record<string,any>
+    record: Record<string, any>,
+    childrenArray: any[]
 ) {
     try {
         const children: string[] = [];
@@ -142,7 +143,8 @@ export async function updateLearnerProfile(
                                 mimeType: "application/vnd.ekstep.content-collection",
                                 creator: courseConfig.creator,
                                 expiry_date: record["expiry_date"],
-                                primaryCategory: "Learner Profile"
+                                primaryCategory: "Learner Profile",
+                                children: childrenArray
                             },
                             isNew: false
                         }

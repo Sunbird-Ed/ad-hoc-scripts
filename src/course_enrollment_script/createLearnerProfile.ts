@@ -144,8 +144,8 @@ async function processLearnerProfiles() {
             }
 
             // Create and update learner profile
-            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, learnerProfileRow);
-            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], learnerProfileRow);
+            const { learnerProfileIdentifier, children } = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, learnerProfileRow);
+            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], learnerProfileRow, children);
             await publishContent(learnerProfileIdentifier);
 
             console.log(`Successfully published learner profile for ${learnerProfileCode}`);
