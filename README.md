@@ -1,6 +1,6 @@
 # ad-hoc-scripts
 
-This repository contains scripts for quiz creation and user course enrollment in the Sunbird platform.
+This repository contains scripts for quiz creation and user course enrollment.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ This repository contains scripts for quiz creation and user course enrollment in
 
 ### Environment Setup
 1. Required environment variables configured (see Configuration section)
-2. Valid Sunbird API credentials
+2. Valid API credentials
 3. Content creator account with appropriate permissions
 4. Access to the organization's channel ID
 
@@ -28,8 +28,8 @@ Set the following environment variables in your `.env` file:
 
 ```env
 # API Configuration
-BASE_URL=sunbird_api_base_url
-# The base URL of the Sunbird API endpoint
+BASE_URL=api_base_url
+# The base URL for the API endpoint
 
 AUTH_KEY=api_key
 # The authentication key for API requests
@@ -46,9 +46,6 @@ REVIEWER_USERNAME=content_reviewer_username
 
 REVIEWER_PASSWORD=content_reviewer_password
 # The password for content reviewer account
-
-TOKEN=user_access_token
-# access token for user
 
 CLIENT_ID=client_id
 # OAuth client ID for authentication
@@ -99,9 +96,12 @@ USER_LEARNER_PATH=./data/user-learner-profile.csv
 
 ## Installation
 
+Before running the scripts, you need to install the project dependencies. These are the software packages that the project requires to work correctly. To install them, open your terminal or command prompt, navigate to the project folder, and run:
+
 ```bash
 npm install
 ```
+This command will download and set up all necessary packages listed in the project’s configuration file (package.json).
 
 ## Running the Scripts
 
@@ -109,7 +109,7 @@ npm install
 
 To run the quiz creation script:
 
-1. Place your CSV files in the `data` directory:
+1. Place your CSV files in the `data` directory located in the root:
    - Quiz data: `data/quiz_data.csv`
    - Question data: `data/question_data.csv`
 
@@ -120,62 +120,131 @@ To run the quiz creation script:
 npm run start:quiz
 ```
 
-### 2. Course Enrollment Script
+### 2. Learner Profile Creation Script
 
-To run the course enrollment script:
+To run the learner profile creation script:
 
-1. Place your learner profile with course data CSV in the `data` directory:
-   - Enrollment data: `data/learner-profile-course.csv`
+1. Place your learner profile with course data CSV in the `data` directory in the root folder:
+   - Learner Profile data: `data/learner-profile-course.csv`
 
-2. Place your user to learner profile data CSV in the `data` directory:
-   - Enrollment data: `data/user-learner-profile.csv`
+2. Set the required environment variables (see Configuration section)
 
-3. Set the required environment variables (see Configuration section)
-
-4. Run the script to create Learner Profile:
+3. Run the script to create Learner Profile:
 ```bash
 npm run start:learnerProfile
 ```
 
-5. Run the script to enroll user to the course:
+### 3. Course Enrollment Script
+
+To run the course enrollment script:
+
+1. Place your user to learner profile data CSV in the `data` directory in the root folder:
+   - Enrollment data: `data/user-learner-profile.csv`
+
+2. Set the required environment variables (see Configuration section)
+
+3. Run the script to enroll user to the course:
 ```bash
 npm run start:enroll
 ```
+
+## CSV File Format
+
+Each CSV file is like a spreadsheet with rows and columns. The first row contains column names. Below is a guide to what each column means for different CSV files.
+
+### Questions Data CSV Columns
+
+Used to upload questions with multiple options and answers.
+```csv
+code,question_text,score,option_1,option_1_is_correct,option_2,option_2_is_correct,...[n number of options with proper number]
+```
+This file is used to define questions that will appear in quizzes. Each row represents one question. You can add as many options as needed by continuing the pattern: option_3, option_3_is_correct, and so on.
+
+| Column                | Description                                        |
+| --------------------- | -------------------------------------------------- |
+| `code`                | Unique codes for the question (e.g., `QZ101`)      |
+| `question_text`       | The question text (e.g., *What is the capital...*) |
+| `score`               | Points awarded for the correct answer              |
+| `option_X`            | Answer choice text (X = 1, 2, 3...)                |
+| `option_X_is_correct` | `TRUE` if correct, `FALSE` otherwise               |
+
+Example row:
+`QZ001,What is the capital of France?,5,Paris,TRUE,Lyon,FALSE`
+
+### Quiz Data CSV Columns
+
+Used to define quizzes and group questions together.
+```csv
+code,quiz_name,language,quiz_type,questions,max_attempts
+```
+This file describes a quiz, including its name, type, language, and which questions are included.
+
+| Column         | Description                                          |
+| -------------- | ---------------------------------------------------- |
+| `code`         | Unique code for the quiz (e.g., `QUIZ001`)           |
+| `quiz_name`    | Name/title of the quiz (e.g., *General Knowledge*)   |
+| `language`     | Quiz Language (e.g., `English`, `Arabic`)            |
+| `quiz_type`    | Type of quiz (e.g., `assess`, `practice`)            |
+| `questions`    | Question codes used for quiz(e.g.,`QZ101,QZ102`)     |
+| `max_attempts` | How many times a user can attempt the quiz           |
+
+Example row:
+`QUIZ001,Geography Quiz,English,practice,"QZ001,QZ002,QZ003",3`
+
+### Learner Profile Data CSV Columns
+
+Used to define the learner profile along with the courses to be attached.
+```csv
+learner_profile_code,learner_profile,course_code,expiry_date
+```
+This file links learner profiles to specific courses and when access expires.
+
+| Column                 | Description                                                 |
+| ---------------------- | ----------------------------------------------------------- |
+| `learner_profile_code` | Unique code for the profile (e.g., `LP001`)                 |
+| `learner_profile`      | Name of the learner profile                                 |
+| `course_code`          | Code of the course the profile can access                   |
+| `expiry_date`          | Access end date in `YYYY-MM-DD` format (e.g., `2025-12-31`) |
+
+Example row:
+`LP001,Learner Profile 01,"course-01,course-02",2025-12-31`
+
+### Course Enrollment Data CSV Columns
+
+This file assigns individual users to learner profiles, which are used to enroll them into courses.
+```csv
+email,learner_profile_code
+```
+This file links user emails to specific learner profile codes for enrollment.
+
+| Column                 | Description                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `email`                | User's email address                                     |
+| `learner_profile_code` | Learner profile codes used to enroll users in courses    |
+
+Example row:
+`user@example.com,LP001`
+
 
 ## Status Reports
 
 The scripts will generate status reports in the following locations:
 
 ### Quiz Creation Reports
-- `reports/question_status.csv`: Contains status of question creation status
-- `reports/quiz_report.csv`: Contains status of quiz creation operations
-- `reports/quiz_question_status.csv`: Contains status of question creation and attachment to quizzes
+- `src/reports/question_status.csv`: Contains status of question creation status
+- `src/reports/quiz_report.csv`: Contains status of quiz creation operations
+- `src/reports/quiz_question_status.csv`: Contains status of question creation and attachment to quizzes
 
-### Course Enrollment Reports
-- `reports/learner-profile-status.csv`: Contains the learner profile creation status.
-- `reports/enrollment-status.csv`: Contains the course enrollment status for the user.
+### Learner Profile Creation Report
+- `src/reports/learner-profile-status.csv`: Contains the learner profile creation status.
+
+### Course Enrollment Report
+- `src/reports/enrollment-status.csv`: Contains the course enrollment status for the user.
 
 These reports will contain detailed information about the success/failure of each operation, including any error messages if applicable.
 
 ## Troubleshooting
 
-1. Check the generated status reports in the `reports` directory for detailed error information
+1. Check the generated status reports in the `src/reports` directory for detailed error information
 2. Verify that all required environment variables are set correctly
 3. Ensure the CSV files are properly formatted according to the expected schema
-
-## CSV File Format
-
-### Quiz Data CSV Format
-```csv
-quizId,quizName,description,category,framework
-```
-
-### Question Data CSV Format
-```csv
-questionId,quizId,questionText,options,correctAnswer,questionType
-```
-
-### Enrollment Data CSV Format
-```csv
-userId,courseId,enrollmentDate,status
-```
