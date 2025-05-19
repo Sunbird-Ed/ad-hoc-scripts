@@ -1,3 +1,19 @@
+## Input Data
+
+The script processes a CSV file containing user email addresses and their corresponding course codes. The CSV should have the following format:
+
+```csv
+email,course_code
+exampleuser1@gmail.com,"fmps-course-001, fmps-course-002"
+exampleuser2@gmail.com,fmps-course-001
+```
+
+### Assumptions
+
+1. Each email address in the CSV must correspond to a valid user in the system
+2. The course_code must be valid and exist in the system
+3. Each user must be enrolled in the course specified by the course_code
+
 ## Prerequisites
 
 Before using these APIs, ensure you have the following credentials:
@@ -42,7 +58,7 @@ curl --location --request POST '{{host}}/api/user/v1/search' \
 --data-raw '{
     "request": {
         "filters": {
-        "email": "user-1@yopmail.com"
+        "email": "{{email}}"
         }
     }
 }'
@@ -81,7 +97,7 @@ curl --location '{{host}}/api/composite/v1/search' \
 --data '{
     "request": {
         "filters": {
-            "code": "fmps-course-001"
+            "code": "{{course_code}}"
         }
     }
 }'
