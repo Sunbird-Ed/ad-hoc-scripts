@@ -66,8 +66,8 @@ async function processCourseEnrollments() {
             const nodeIdsStringArray = Array.from(currentMapping[learnerProfileCode].keys()).map(String);
 
             // Create and update learner profile
-            const learnerProfileIdentifier = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, record);
-            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], record);
+            const { learnerProfileIdentifier, children } = await createLearnerProfile(learnerProfileCode, nodeIdsStringArray, record);
+            await updateLearnerProfile(learnerProfileCode, learnerProfileIdentifier, currentMapping[learnerProfileCode], record, children);
             await publishContent(learnerProfileIdentifier);
 
             console.log(`Successfully published learner profile for ${learnerProfileCode}`);
