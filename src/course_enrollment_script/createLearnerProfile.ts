@@ -85,9 +85,9 @@ async function processLearnerProfiles() {
             if (existingCourses) {
                 if (!existingCourses.has(code)) {
                     existingCourses.add(code);
-                    console.log(`  Added unique course ${code} to learner profile ${learnerProfileCode}`);
+                    console.log(` Adding course ${code} to learner profile ${learnerProfileCode} is in progress`);
                 } else {
-                    console.log(`  Skipped duplicate course ${code} for learner profile ${learnerProfileCode}`);
+                    console.log(`Skipping duplicate course ${code} for learner profile ${learnerProfileCode}`);
                 }
             }
         });
@@ -96,7 +96,6 @@ async function processLearnerProfiles() {
     // Process each learner profile with its unique courses
     for (const [learnerProfileCode, courseCodes] of learnerProfileCourses) {
         console.log(`Processing learner profile: ${learnerProfileCode}`);
-        console.log(`  Unique courses: ${Array.from(courseCodes).join(', ')}`);
 
         try {
             // Check if learner profile already exists
@@ -218,8 +217,7 @@ async function processLearnerProfiles() {
     fs.writeFileSync('.env', envContent);
 
     console.log('\nFinished processing all learner profiles');
-    console.log(`Results have been saved to ${path.join(__dirname, '..', 'reports', 'learner-profile-status.csv')}`);
-    console.log('You can now run: npm run start:enroll');
+    console.log(`Learner profile creation status reports have been saved to ${path.join(__dirname, '..', 'reports', 'learner-profile-status.csv')}`);
 }
 
 function writeResultsToCSV(headerRow: string[], results: any[]) {

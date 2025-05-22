@@ -90,13 +90,13 @@ export async function createAssessment(
 
     try {
         const response = await axios.post(`${config.baseUrl}${routes.createContent}`, body, { headers });
-        console.log('API Response:', response.data);
+        console.log('Create assessment API Response:', response.data);
         return {
             identifier: response.data.result.identifier,
             versionKey: response.data.result.versionKey
         };
     } catch (error) {
-        console.error('API Error:');
+        console.error('Create assessment API Error:');
         throw error;
     }
 }
@@ -136,9 +136,9 @@ export async function updateContent(
 
     try {
         const response = await axios.patch(`${config.baseUrl}${routes.updateContent}/${nodeId}`, body, { headers });
-        console.log('Update API Response:', response.data);
+        console.log('Quiz Update API Response:', response.data);
     } catch (error) {
-        console.error('Update API Error:');
+        console.error('Quiz Update API Error:');
         throw error;
     }
 }
@@ -174,9 +174,9 @@ export async function reviewContent(identifier: string): Promise<void> {
 
     try {
         const response = await axios.post(`${config.baseUrl}${routes.reviewContent}/${identifier}`, body, { headers });
-        console.log('Review API Response:', response.data);
+        console.log('Quiz Review API Response:', response.data);
     } catch (error) {
-        console.error('Review API Error:');
+        console.error('Quiz Review API Error:');
         throw error;
     }
 }
@@ -199,9 +199,9 @@ export async function publishContent(identifier: string): Promise<void> {
 
     try {
         const response = await axios.post(`${config.baseUrl}${routes.publishContent}/${identifier}`, body, { headers });
-        console.log('Publish API Response:', response.data);
+        console.log('Quiz Publish API Response:', response.data);
     } catch (error) {
-        console.error('Publish API Error:' );
+        console.error('Quiz Publish API Error:' );
         throw error;
     }
 }

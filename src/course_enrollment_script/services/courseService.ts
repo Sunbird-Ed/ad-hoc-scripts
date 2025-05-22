@@ -93,7 +93,6 @@ export async function createLearnerProfile(learnerCode: string, nodeIds: string[
             }
         });
 
-        console.log(`Created learner profile for ${learnerCode}:`, JSON.stringify(response.data));
         return { learnerProfileIdentifier: response.data.result.identifier, children: children };
     } catch (error) {
         console.error(`Error creating learner profile for ${learnerCode}:`);
@@ -175,7 +174,6 @@ export async function updateLearnerProfile(
             data: payload
         });
 
-        console.log(`Updated learner profile for ${learnerCode}:`, JSON.stringify(response.data));
         return response.data;
     } catch (error) {
         console.error(`Error updating learner profile for ${learnerCode}:`, error);
@@ -302,7 +300,7 @@ export async function searchLearnerProfile(profileCode: string): Promise<string 
 
         const profile = content[0];
         if (profile.contentType !== 'Resource' || !profile.children || profile.primaryCategory !== 'Learner Profile') {
-            console.log(`Invalid learner profile ${profileCode}: wrong content type or missing required fields`);
+            console.log(`Invalid learner profile ${profileCode}: contentType=${profile.contentType}, children=${profile.children}, primaryCategory=${profile.primaryCategory}`);
             return null;
         }
 
@@ -351,7 +349,7 @@ export async function getCourseNodeIds(courseIds: string[]): Promise<{ [nodeId: 
             const response = await axios.get(`${config.baseUrl}${routes.readContent}/${courseId}`, { headers });
             const { status, contentType, code } = response.data.result.content;
             if (status !== 'Live' || contentType !== 'Course' || !code) {
-                console.log(`Invalid course ${courseId}: wrong status or content type or missing required fields`);
+                console.log(`Invalid course ${courseId}: status=${status}, contentType=${contentType}, code=${code}`);
                 continue;
             }
             nodeIdToCourseCodeMap[courseId] = code;
