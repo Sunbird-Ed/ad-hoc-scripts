@@ -28,53 +28,53 @@ Set the following environment variables in your `.env` file:
 
 ```env
 # API Configuration
-BASE_URL=api_base_url
+export BASE_URL=api_base_url
 # The base URL for the API endpoint
 
-AUTH_KEY=api_key
+export AUTH_KEY=api_key
 # The authentication key for API requests
 
 # Authentication Credentials
-CREATOR_USERNAME=content_creator_username
+export CREATOR_USERNAME=content_creator_username
 # The username for content creator account
 
-CREATOR_PASSWORD=content_creator_password
+export CREATOR_PASSWORD=content_creator_password
 # The password for content creator account
 
-REVIEWER_USERNAME=content_reviewer_username
+export REVIEWER_USERNAME=content_reviewer_username
 # The username for content reviewer account
 
-REVIEWER_PASSWORD=content_reviewer_password
+export REVIEWER_PASSWORD=content_reviewer_password
 # The password for content reviewer account
 
-CLIENT_ID=client_id
+export CLIENT_ID=client_id
 # OAuth client ID for authentication
 
-CLIENT_SECRET=client_secret
+export CLIENT_SECRET=client_secret
 # OAuth client secret for authentication
 
-GRANT_TYPE=password
+export GRANT_TYPE=password
 # Default: password
 # OAuth grant type for authentication
 
 # Content Creation Settings
-CHANNEL_ID=channel_id
+export CHANNEL_ID=channel_id
 # The channel ID for content creation
 
-CREATED_BY=content_creator_id
+export CREATED_BY=content_creator_id
 # The ID of the content creator
 
-ORGANISATION=FMPS Org
+export ORGANISATION=FMPS Org
 # The organization name for content creation
 
-FRAMEWORK=FMPS
+export FRAMEWORK=FMPS
 # The framework ID
 
-CREATOR=Content Creator FMPS
+export CREATOR=Content Creator FMPS
 # The name of the content creator
 
 # Copyright Information
-COPYRIGHT=FMPS Org
+export COPYRIGHT=FMPS Org
 # Copyright holder for the content
 
 # CSV File Paths
@@ -92,6 +92,8 @@ LEARNER_COURSE_CSV_PATH=./data/learner-profile-course.csv
 
 USER_LEARNER_PATH=./data/user-learner-profile.csv
 # Path to the user learner profile CSV file that contains user information
+
+Once the environment variables are set, run `source .env` in the terminal to load the variables into your current shell session.
 ```
 
 ## Installation
