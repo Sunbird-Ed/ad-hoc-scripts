@@ -300,7 +300,7 @@ export async function searchLearnerProfile(profileCode: string): Promise<string 
 
         const profile = content[0];
         if (profile.contentType !== 'Resource' || profile.primaryCategory !== 'Learner Profile') {
-            console.log(`Invalid learner profile ${profileCode}: contentType=${profile.contentType}, children=${profile.children}, primaryCategory=${profile.primaryCategory}`);
+            console.log(`Invalid learner profile ${profileCode}: contentType=${profile.contentType}, primaryCategory=${profile.primaryCategory}`);
             return null;
         }
 
