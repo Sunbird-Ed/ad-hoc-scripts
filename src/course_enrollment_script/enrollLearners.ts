@@ -69,8 +69,6 @@ async function processEnrollments() {
             }
 
             for (const learnerProfileCode of learnerProfileCodes) {
-                console.log(`  Processing learner profile: ${learnerProfileCode}`);
-
                 const profileId = await searchLearnerProfile(learnerProfileCode);
                 if (!profileId) {
                     results.push({
@@ -194,7 +192,7 @@ async function processEnrollments() {
     writeResultsToCSV(updatedheaderRow, results);
 
     console.log('Finished processing all enrollments');
-    console.log(`Results have been saved to ${path.join(__dirname, '..', 'reports', 'enrollment-status.csv')}`);
+    console.log(`Enrollment status reports have been saved to ${path.join(__dirname, '..', 'reports', 'enrollment-status.csv')}`);
 }
 
 function writeResultsToCSV(headerRow: string[], results: EnrollmentResult[]) {
