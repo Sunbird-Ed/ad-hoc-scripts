@@ -86,6 +86,8 @@ async function processLearnerProfiles() {
                 if (!existingCourses.has(code)) {
                     existingCourses.add(code);
                     console.log(` Adding course ${code} to learner profile ${learnerProfileCode} is in progress`);
+                } else {
+                    console.log(`Skipping duplicate course ${code} for learner profile ${learnerProfileCode}`);
                 }
             }
         });
