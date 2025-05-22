@@ -51,7 +51,7 @@ export async function searchContent(code: string, questionExists?: boolean, quiz
             if (questionExists) {
                 const content = response.data.result.items[0];
                 if (content.type === "mcq" && content.itemType === "UNIT") {
-                    return { exists: true, question: true, identifier: content.identifier, score: content.maxScore };
+                    return { exists: true, question: true, identifier: content.identifier, score: content.max_score };
                 }
             }
             else if (quizExists) {

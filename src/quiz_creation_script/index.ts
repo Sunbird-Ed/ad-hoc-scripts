@@ -46,12 +46,18 @@ async function processQuestionCsv() {
         // Prepare status report data
         const statusReport = [rows[0].concat(['status', 'reason'])]; // Add headers
 
+        const uniqueCodes = new Set();
         for (const row of parsedRows) {
             try {
                 if (Object.keys(row).length >= 3) {
                     const code = row.code;
                     if (!code) {
                         throw new Error('Question Code input is missing');
+                    }
+                    if (uniqueCodes.has(row.code)) {
+                        console.log(`Skipping duplicate question with code: ${row.code}`);
+                        statusReport.push(headers.map(h => row[h]).concat(['Skipped', `Question with code ${code} already exists`]));
+                        continue;
                     }
                     const { exists, question = false, identifier, score } = await searchContent(code, true);
                     if (exists) {
@@ -95,6 +101,7 @@ async function processQuestionCsv() {
 
                     const nodeId = await createQuestion(code, title, optionPairs, maxScore);
                     questionNodeMap[`${code}`] = nodeId;
+                    uniqueCodes.add(row.code);
                     console.log(`Mapped question code ${code} to node_id ${nodeId} with score ${maxScore}`);
                     statusReport.push(headers.map(h => row[h]).concat(['Success', 'none']));
                 }
@@ -142,6 +149,7 @@ async function processContentCsv() {
         );
 
         const statusReport = [headers.concat(['status', 'error_message'])];
+        const uniqueCodes = new Set();
         for (const row of parsedRows) {
             if (Object.keys(row).length >= 6) {
                 const code = row.code;
@@ -158,6 +166,17 @@ async function processContentCsv() {
                     ]);
                     continue
                 }
+
+                if (uniqueCodes.has(row.code)) {
+                    console.log(`Skipping duplicate quiz with code: ${row.code}`);
+                    statusReport.push([
+                        ...baseRow,
+                        'Skipped',
+                        `Quiz with code ${code} already exists`
+                    ]);
+                    continue;
+                }
+
                 const name = row.quiz_name;
                 if (!name) {
                     statusReport.push([
@@ -249,6 +268,7 @@ async function processContentCsv() {
                         `none`
                     ]);
 
+                    uniqueCodes.add(row.code);
                     // Map question codes to their node IDs and calculate total score
                     const questionIdentifiers = [];
                     let totalScore = 0;
@@ -415,9 +435,13 @@ async function generateQuizQuestionStatus() {
 
         const quizQuestionStatus = [['quiz_code', 'question_code', 'question_creation_status', 'question_attachment_status', 'error_message']];
 
+        const uniqueCodes = new Set();
         for (const row of parsedRows) {
             if (Object.keys(row).length >= 6) {
                 const code = row.code;
+                if (uniqueCodes.has(row.code)) {
+                    continue;
+                }
                 const questionCodes = row.questions.split(',').map(code => code.trim());
 
                 for (const qCode of questionCodes) {
@@ -433,6 +457,8 @@ async function generateQuizQuestionStatus() {
                         errorMessage
                     ]);
                 }
+
+                uniqueCodes.add(row.code);
             }
         }
 

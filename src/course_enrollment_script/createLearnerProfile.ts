@@ -97,14 +97,14 @@ async function processLearnerProfiles() {
     for (const [learnerProfileCode, courseCodes] of learnerProfileCourses) {
         console.log(`Processing learner profile: ${learnerProfileCode}`);
 
+        const row: any = learnerCourseData.find(row => row['learner_profile_code'] === learnerProfileCode);
         try {
             // Check if learner profile already exists
             const { exists } = await searchContent(learnerProfileCode);
             if (exists) {
                 console.log(`  Learner profile ${learnerProfileCode} already exists, skipping...`);
                 // Add a result row for each course in the original data
-                const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
-                for (const row of profileRows) {
+                if (row) {
                     results.push([
                         ...Object.values(row),
                         'Skipped',
@@ -151,8 +151,7 @@ async function processLearnerProfiles() {
             createdProfiles.add(learnerProfileCode);
 
             // Add a result row for each course in the original data
-            const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
-            for (const row of profileRows) {
+            if (row) {
                 results.push([
                     ...Object.values(row),
                     'Success',
@@ -169,8 +168,7 @@ async function processLearnerProfiles() {
             }
 
             // Add a result row for each course in the original data
-            const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
-            for (const row of profileRows) {
+            if (row) {
                 results.push([
                     ...Object.values(row),
                     'Failure',
