@@ -92,9 +92,8 @@ LEARNER_COURSE_CSV_PATH=./data/learner-profile-course.csv
 
 USER_LEARNER_PATH=./data/user-learner-profile.csv
 # Path to the user learner profile CSV file that contains user information
-
-Once the environment variables are set, run `source .env` in the terminal to load the variables into your current shell session.
 ```
+Once the environment variables are set, run `source .env` in the terminal to load the variables into your current shell session.
 
 ## Installation
 
