@@ -152,7 +152,7 @@ async function processEnrollments() {
                         } else {
                             errorMessage = enrollError?.message || 'Failed to enroll to the course';
                         }
-                        console.error(`    Failed to enroll in course ${courseCode}:`, enrollError.message);
+                        console.error(`    Failed to enroll in course ${courseCode}:`, errorMessage);
 
                         const isAlreadyEnrolled = errorMessage.toLowerCase().includes('user has already enrolled');
 

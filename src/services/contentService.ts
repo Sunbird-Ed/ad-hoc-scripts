@@ -35,7 +35,7 @@ export async function searchContent(code: string, questionExists?: boolean, quiz
                             "FlagReview"
                         ],
                         code: code,
-                        createdBy: "927c2094-987f-4e8f-8bd5-8bf93e3d2e8a"
+                        createdBy: globalConfig.createdBy
                     },
                     offset: 0,
                     limit: 1,

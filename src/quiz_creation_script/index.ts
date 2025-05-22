@@ -168,14 +168,6 @@ async function processContentCsv() {
                     continue
                 }
                 const maxAttempts = parseInt(row.max_attempts, 10);
-                if (!maxAttempts || isNaN(maxAttempts)) {
-                    statusReport.push([
-                        ...baseRow,
-                        'Failed',
-                        `Quiz max attempts input is missing`
-                    ]);
-                    continue
-                }
                 const language = row.language || "English";
                 const contentType = row.quiz_type;
                 if (!contentType) {
@@ -186,7 +178,17 @@ async function processContentCsv() {
                     ]);
                     continue
                 }
-                const questionCodes = row.questions.split(',').map(code => code.trim());                
+                if (contentType === "assess") {
+                    if (!maxAttempts || isNaN(maxAttempts)) {
+                        statusReport.push([
+                            ...baseRow,
+                            'Failed',
+                            `Quiz max attempts input is missing`
+                        ]);
+                        continue
+                    }
+                }
+                const questionCodes = row.questions.split(',').map(code => code.trim());
                 if (_.isEmpty(_.compact(questionCodes))) {
                     statusReport.push([
                         ...baseRow,
