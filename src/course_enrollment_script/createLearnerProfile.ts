@@ -86,7 +86,7 @@ async function processLearnerProfiles() {
                 if (!existingCourses.has(code)) {
                     existingCourses.add(code);
                     console.log(` Adding course ${code} to learner profile ${learnerProfileCode} is in progress`);
-                } else {}
+                }
             }
         });
     }

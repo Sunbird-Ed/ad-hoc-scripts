@@ -81,16 +81,16 @@ export COPYRIGHT=FMPS Org
 
 Ensure a data folder is created in the root directory of the project. This folder should contain the necessary CSV files used to create quizzes and questions.
 
-QUIZ_CSV_PATH=./data/assessment.csv
+export QUIZ_CSV_PATH=./data/assessment.csv
 # Path to the quiz CSV file to create quiz
 
-QUESTION_CSV_PATH=./data/questions.csv
+export QUESTION_CSV_PATH=./data/questions.csv
 # Path to the questions CSV file to create questions for quiz
 
-LEARNER_COURSE_CSV_PATH=./data/learner-profile-course.csv
+export LEARNER_COURSE_CSV_PATH=./data/learner-profile-course.csv
 # Path to the learner course enrollment CSV file that contains courses to be enrolled
 
-USER_LEARNER_PATH=./data/user-learner-profile.csv
+export USER_LEARNER_PATH=./data/user-learner-profile.csv
 # Path to the user learner profile CSV file that contains user information
 ```
 Once the environment variables are set, run `source .env` in the terminal to load the variables into your current shell session.
