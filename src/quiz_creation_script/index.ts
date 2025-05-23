@@ -44,7 +44,7 @@ async function processQuestionCsv() {
         }
 
         // Prepare status report data
-        const statusReport = [rows[0].concat(['status', 'reason'])]; // Add headers
+        const statusReport = [['code', 'status', 'reason']]; // Add headers
 
         const uniqueCodes = new Set();
         for (const row of parsedRows) {
@@ -56,7 +56,7 @@ async function processQuestionCsv() {
                     }
                     if (uniqueCodes.has(row.code)) {
                         console.log(`Skipping duplicate question with code: ${row.code}`);
-                        statusReport.push(headers.map(h => row[h]).concat(['Skipped', `Question with code ${code} already exists`]));
+                        statusReport.push([row.code, 'Skipped', `Question with code ${row.code} already exists`]);
                         continue;
                     }
                     const { exists, question = false, identifier, score } = await searchContent(code, true);
@@ -64,10 +64,10 @@ async function processQuestionCsv() {
                         if (question && identifier) {
                             questionNodeMap[`${code}`] = identifier;
                             questionScoreMap[`${code}`] = score;
-                            statusReport.push(headers.map(h => row[h]).concat(['Skipped', `Question with code ${code} already exists`]));
+                            statusReport.push([row.code, 'Skipped', `Question with code ${code} already exists`]);
                             continue;
                         }
-                        statusReport.push(headers.map(h => row[h]).concat(['Skipped', `Content with code ${code} already exists`]));
+                        statusReport.push([row.code, 'Skipped', `Content with code ${code} already exists`]);
                         continue;
                     }
 
@@ -103,11 +103,11 @@ async function processQuestionCsv() {
                     questionNodeMap[`${code}`] = nodeId;
                     uniqueCodes.add(row.code);
                     console.log(`Mapped question code ${code} to node_id ${nodeId} with score ${maxScore}`);
-                    statusReport.push(headers.map(h => row[h]).concat(['Success', 'none']));
+                    statusReport.push([row.code, 'Success', 'none']);
                 }
             } catch (error: any) {
                 console.error(`Error processing question ${row.code}:`, error);
-                statusReport.push(headers.map(h => row[h]).concat(['Failure', error.message]));
+                statusReport.push([row.code, 'Failure', error.message]);
             }
         }
 
@@ -148,7 +148,7 @@ async function processContentCsv() {
             }, {} as Record<string, string>)
         );
 
-        const statusReport = [headers.concat(['status', 'error_message'])];
+        const statusReport = [['code', 'status', 'error_message']]; // Add headers
         const uniqueCodes = new Set();
         for (const row of parsedRows) {
             if (Object.keys(row).length >= 6) {
@@ -160,7 +160,7 @@ async function processContentCsv() {
                 });
                 if (!code) {
                     statusReport.push([
-                        ...baseRow,
+                        "",
                         'Failed',
                         `Quiz code input is missing`
                     ]);
@@ -170,7 +170,7 @@ async function processContentCsv() {
                 if (uniqueCodes.has(row.code)) {
                     console.log(`Skipping duplicate quiz with code: ${row.code}`);
                     statusReport.push([
-                        ...baseRow,
+                        row.code,
                         'Skipped',
                         `Quiz with code ${code} already exists`
                     ]);
@@ -180,7 +180,7 @@ async function processContentCsv() {
                 const name = row.quiz_name;
                 if (!name) {
                     statusReport.push([
-                        ...baseRow,
+                        row.code,
                         'Failed',
                         `Quiz name is missing`
                     ]);
@@ -191,7 +191,7 @@ async function processContentCsv() {
                 const contentType = row.quiz_type;
                 if (!contentType) {
                     statusReport.push([
-                        ...baseRow,
+                        row.code,
                         'Failed',
                         `Quiz content type input is missing`
                     ]);
@@ -200,7 +200,7 @@ async function processContentCsv() {
                 if (contentType === "assess") {
                     if (!maxAttempts || isNaN(maxAttempts)) {
                         statusReport.push([
-                            ...baseRow,
+                            row.code,
                             'Failed',
                             `Quiz max attempts input is missing`
                         ]);
@@ -210,7 +210,7 @@ async function processContentCsv() {
                 const questionCodes = row.questions.split(',').map(code => code.trim());
                 if (_.isEmpty(_.compact(questionCodes))) {
                     statusReport.push([
-                        ...baseRow,
+                        row.code,
                         'Failed',
                         `Question codes input are missing`
                     ]);
@@ -226,7 +226,7 @@ async function processContentCsv() {
                     });
 
                     statusReport.push([
-                        ...baseRow,
+                        row.code,
                         'Failed',
                         `question with code ${missingQuestions[0]} does not exist.`
                     ]);
@@ -245,7 +245,7 @@ async function processContentCsv() {
                         });
 
                         statusReport.push([
-                            ...baseRow,
+                            row.code,
                             'Skipped',
                             `Content with code ${code} already exists`
                         ]);
@@ -263,7 +263,7 @@ async function processContentCsv() {
                     });
 
                     statusReport.push([
-                        ...baseRow,
+                        row.code,
                         'Draft',
                         `none`
                     ]);

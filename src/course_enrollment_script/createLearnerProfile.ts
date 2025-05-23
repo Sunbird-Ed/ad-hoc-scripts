@@ -38,7 +38,7 @@ async function processLearnerProfiles() {
     // Read learner-course mapping
     const learnerCourseRows = await parseCsv(courseConfig.learnerCoursePath);
     const headerRow = learnerCourseRows[0];
-    const updatedHeaderRow = [...learnerCourseRows[0], 'status', 'reason'];
+    const updatedHeaderRow = ['learner_profile_code', 'status', 'reason'];
     const dataRows = learnerCourseRows.slice(1);
 
     const learnerCourseData = dataRows.map(row =>
@@ -61,7 +61,7 @@ async function processLearnerProfiles() {
         const learnerProfileCode = record['learner_profile_code'];
         if (!learnerProfileCode) {
             results.push([
-                ...Object.values(record),
+                record["learner_profile_code"],
                 'Failure',
                 `Learner Profile code input is missing`
             ]);
@@ -73,7 +73,7 @@ async function processLearnerProfiles() {
         const courseCodes = parseLearnerProfileCodes(record['course_code']);
         if (_.isEmpty(courseCodes)) {
             results.push([
-                ...Object.values(record),
+                record["learner_profile_code"],
                 'Failure',
                 `Course codes input is missing`
             ]);
@@ -106,7 +106,7 @@ async function processLearnerProfiles() {
                 const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
                 for (const row of profileRows) {
                     results.push([
-                        ...Object.values(row),
+                        row["learner_profile_code"],
                         'Skipped',
                         `Content with the code ${learnerProfileCode} already exists`
                     ]);
@@ -154,7 +154,7 @@ async function processLearnerProfiles() {
             const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
             for (const row of profileRows) {
                 results.push([
-                    ...Object.values(row),
+                    row["learner_profile_code"],
                     'Success',
                     'none'
                 ]);
@@ -172,7 +172,7 @@ async function processLearnerProfiles() {
             const profileRows = learnerCourseData.filter(row => row['learner_profile_code'] === learnerProfileCode);
             for (const row of profileRows) {
                 results.push([
-                    ...Object.values(row),
+                    row["learner_profile_code"],
                     'Failure',
                     errorMessage
                 ]);
