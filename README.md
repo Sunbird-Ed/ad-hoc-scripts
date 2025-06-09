@@ -73,6 +73,18 @@ export FRAMEWORK=FMPS
 export CREATOR=Content Creator FMPS
 # The name of the content creator
 
+export ENROLLMENT_BATCH_SIZE=5
+# The number of users to process in parallel during enrollment
+# Example: Set to 5 to process 5 users simultaneously
+
+export COURSE_BATCH_SIZE=1
+# The number of concurrent course enrollments per user
+# Example: Set to 1 to allow 1 simultaneous course enrollments per user
+
+export ENROLL_USER_WAIT_INTERVAL=0
+# The wait time in milliseconds between processing each user's enrollments
+# Default: 0 (no wait time)
+
 # Copyright Information
 export COPYRIGHT=FMPS Org
 # Copyright holder for the content
